@@ -1,6 +1,6 @@
 *** Settings ***
-Resource    ../keywords.resource
+Resource          ../keywords.resource
 
 *** Test Cases ***
 Crawling
-   ${urls}=  Crawl site  reaktor.com
+    ${urls}=    Crawl site    reaktor.com
