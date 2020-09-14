@@ -3,4 +3,8 @@ Resource          ../keywords.resource
 
 *** Test Cases ***
 Crawling
-    ${urls}=    Crawl site    reaktor.com
+    New Browser
+    New Context
+    Set Browser Timeout  10s
+    ${urls}=    Crawl site    https://www.reaktor.com
+    [Teardown]  Close Browser
