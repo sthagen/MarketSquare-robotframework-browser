@@ -10,6 +10,9 @@ from ..utils import logger
 class Crawling(LibraryComponent):
     @keyword(tags=["Crawling"])
     def crawl_site(self, url):
+        """
+        Take screenshots from all urls inside a specific site.
+        """
         self.library.new_page()
         self._crawl(url, url, set())
 
