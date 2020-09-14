@@ -3,16 +3,17 @@ from typing import Set
 from robotlibcore import keyword  # type: ignore
 
 from Browser.base import LibraryComponent
+
 from ..utils import logger
 
-class Crawling(LibraryComponent):
 
+class Crawling(LibraryComponent):
     @keyword(tags=["Crawling"])
     def crawl_site(self, url):
         self.library.new_page()
         self._crawl(url, url, set())
 
-    def _crawl(self, href:str, baseurl:str, crawled:Set[str]):
+    def _crawl(self, href: str, baseurl: str, crawled: Set[str]):
         if not href.startswith(baseurl):
             return
         if href in crawled:
