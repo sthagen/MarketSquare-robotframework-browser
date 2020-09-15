@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Set, Optional
 
 from robotlibcore import keyword  # type: ignore
 
@@ -9,24 +9,28 @@ from ..utils import logger
 
 class Crawling(LibraryComponent):
     @keyword(tags=["Crawling"])
-    def crawl_site(self, url):
+    def crawl_site(self, url:Optional[str]=None):
         """
         Take screenshots from all urls inside a specific site.
         """
-        self.library.new_page()
-        self._crawl(url, url, set())
+        if url:
+            self.library.new_page(url)
+        self._crawl(self.library.get_url() or '')
 
-    def _crawl(self, href: str, baseurl: str, crawled: Set[str]):
-        if not href.startswith(baseurl):
-            return
-        if href in crawled:
-            return
-        logger.info(f"Crawling url {href}")
-        logger.console(f"Crawling url {href}")
-        self.library.go_to(href)
-        self.library.take_screenshot()
-        crawled.add(href)
-        links = self.library.get_elements("//a[@href]")
-        child_hrefs = [self.library.get_attribute(link, "href") for link in links]
-        for child_href in child_hrefs:
-            self._crawl(child_href, baseurl, crawled)
+    def _crawl(self, baseurl: str):
+        hrefs_to_crawl = [baseurl]
+        crawled: Set[str] = set()
+        while hrefs_to_crawl:
+            href = hrefs_to_crawl.pop()
+            if not href.startswith(baseurl):
+                continue
+            if href in crawled:
+                continue
+            logger.info(f"Crawling url {href}")
+            logger.console(f"Crawling url {href}")
+            self.library.go_to(href)
+            self.library.take_screenshot()
+            crawled.add(href)
+            links = self.library.get_elements("//a[@href]")
+            child_hrefs = [self.library.get_attribute(link, "href") for link in links]
+            hrefs_to_crawl = child_hrefs + hrefs_to_crawl
