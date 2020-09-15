@@ -1,4 +1,4 @@
-from typing import Set, Optional
+from typing import Optional, Set
 
 from robotlibcore import keyword  # type: ignore
 
@@ -9,13 +9,13 @@ from ..utils import logger
 
 class Crawling(LibraryComponent):
     @keyword(tags=["Crawling"])
-    def crawl_site(self, url:Optional[str]=None):
+    def crawl_site(self, url: Optional[str] = None):
         """
         Take screenshots from all urls inside a specific site.
         """
         if url:
             self.library.new_page(url)
-        self._crawl(self.library.get_url() or '')
+        self._crawl(self.library.get_url() or "")
 
     def _crawl(self, baseurl: str):
         hrefs_to_crawl = [baseurl]
