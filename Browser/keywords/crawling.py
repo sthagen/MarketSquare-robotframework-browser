@@ -22,6 +22,9 @@ class Crawling(LibraryComponent):
         crawled: Set[str] = set()
         while hrefs_to_crawl:
             href = hrefs_to_crawl.pop()
+            if href.startswith("/"):
+                href = baseurl + href[1:]
+                logger.console(href)
             if href.endswith(".zip"):
                 logger.console("zip file detected ignoring")
                 continue
