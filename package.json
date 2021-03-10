@@ -1,6 +1,6 @@
 {
   "name": "robotframework-playwright",
-  "version": "3.3.2",
+  "version": "4.0.0",
   "main": "index.ts",
   "author": "Mikko Korpela <mikko.korpela@gmail.com>",
   "license": "Apache-2.0",
@@ -39,7 +39,7 @@
     "@grpc/grpc-js": "^1.2.9",
     "@types/uuid": "^8.3.0",
     "google-protobuf": "3.15.5",
-    "playwright": "^1.9.1",
+    "playwright": "^1.9.2",
     "uuid": "^8.3.2"
   },
   "husky": {
