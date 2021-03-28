@@ -285,6 +285,42 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "LDerikx",
+      "name": "LDerikx",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26576024?v=4",
+      "profile": "https://github.com/LDerikx",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "olga-",
+      "name": "olga-",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9334057?v=4",
+      "profile": "https://github.com/olga-",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "bollwyvl",
+      "name": "Nicholas Bollweg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/45380?v=4",
+      "profile": "https://github.com/bollwyvl",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "VilleSalonen",
+      "name": "Ville Salonen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1070813?v=4",
+      "profile": "http://villesalonen.fi",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,

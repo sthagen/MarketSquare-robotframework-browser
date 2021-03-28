@@ -86,6 +86,8 @@ class Control(LibraryComponent):
          then screenshot is embedded as Base64 image to the log.html. The image is saved temporally
          to the disk and warning is displayed if removing the temporary file fails.
 
+         The ${OUTPUTDIR}/browser/ is removed at the first suite startup.
+
         ``selector`` Take a screenshot of the element matched by selector.
         See the `Finding elements` section for details about the selectors.
         If not provided take a screenshot of current viewport.
@@ -153,9 +155,15 @@ class Control(LibraryComponent):
         """
         old_timeout = self.millisecs_to_timestr(self.timeout)
         self.timeout = self.convert_timeout(timeout)
-        with self.playwright.grpc_channel() as stub:
-            response = stub.SetTimeout(Request().Timeout(timeout=self.timeout))
-            logger.info(response.log)
+        try:
+            with self.playwright.grpc_channel() as stub:
+                response = stub.SetTimeout(Request().Timeout(timeout=self.timeout))
+                logger.info(response.log)
+        except Exception as error:  # Suppress  all errors
+            if "Browser has been closed" in str(error):
+                logger.debug(f"Suppress error {error} when setting timeout.")
+            else:
+                raise
         return old_timeout
 
     @keyword(tags=("Setter", "Config"))

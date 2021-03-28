@@ -14,7 +14,6 @@
 
 from concurrent.futures._base import Future
 from datetime import timedelta
-from pathlib import Path
 from typing import TYPE_CHECKING, Set, Union
 
 if TYPE_CHECKING:
@@ -67,7 +66,7 @@ class LibraryComponent:
 
     @property
     def browser_output(self):
-        return Path(self.outputdir, "browser")
+        return self.library.browser_output
 
     @property
     def screenshots_output(self):

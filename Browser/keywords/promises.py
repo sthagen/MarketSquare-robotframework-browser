@@ -13,7 +13,9 @@
 # limitations under the License.
 import json
 from concurrent.futures import Future, ThreadPoolExecutor
+from os import PathLike
 from pathlib import Path
+from time import sleep
 
 from robot.api.deco import keyword  # type: ignore
 from robot.libraries.BuiltIn import EXECUTION_CONTEXTS  # type: ignore
@@ -53,6 +55,8 @@ class Promises(LibraryComponent):
 
         promise = self._executor.submit(handler.current_handler(), *positional, **named)
         self.unresolved_promises.add(promise)
+        while not (promise.running() or promise.done()):
+            sleep(0.01)
         return promise
 
     @keyword(tags=("Wait", "BrowserControl"))
@@ -131,3 +135,46 @@ class Promises(LibraryComponent):
         If one fails, then this keyword will fail.
         """
         self.wait_for(*self.unresolved_promises)
+
+    @keyword(tags=("Setter", "PageContent"))
+    def promise_to_upload_file(self, path: PathLike):
+        """Returns a promise that resolves when file from ``path`` has been uploaded.
+        Fails if the upload has not happened during timeout.
+
+        Upload file from ``path`` into next file chooser dialog on page.
+
+        ``path`` Path to file to be uploaded.
+
+        Example use:
+
+        | ${promise}=  Promise To Upload File    ${CURDIR}/test_upload_file
+        | Click          \\#file_chooser
+        | ${upload_result}=  Wait For  ${promise}
+
+        """
+
+        promise = self._executor.submit(self._upload_file, **{"path": path})
+        self.unresolved_promises.add(promise)
+        return promise
+
+    @keyword(tags=("Setter", "PageContent"))
+    def upload_file(self, path: PathLike):
+        """*DEPRECATED!!* Use keyword `Promise To Upload File` instead.
+        Upload file from ``path`` into next file chooser dialog on page.
+
+        ``path`` Path to file to be uploaded.
+
+        Example use:
+
+        | Upload File    ${CURDIR}/test_upload_file
+        | Click          \\#file_chooser
+
+        """
+        return self._upload_file(path)
+
+    def _upload_file(self, path: PathLike):
+        p = Path(path)
+        p.resolve(strict=True)
+        with self.playwright.grpc_channel() as stub:
+            response = stub.UploadFile(Request().FilePath(path=str(p)))
+            logger.debug(response.log)

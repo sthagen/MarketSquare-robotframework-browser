@@ -240,7 +240,18 @@ def atest(c, suite=None, include=None, zip=None):
     if include:
         args.extend(["--include", include])
     exit = False if zip else True
-    rc = _run_robot(args, exit)
+    os.mkdir(ATEST_OUTPUT)
+    logfile = open(Path(ATEST_OUTPUT, "playwright-log.txt"), "w")
+    os.environ["DEBUG"] = "pw:api"
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
+    process = subprocess.Popen([
+        "node",
+        "Browser/wrapper/index.js",
+        "18771",
+    ], stdout=logfile, stderr=subprocess.STDOUT)
+    os.environ["ROBOT_FRAMEWORK_BROWSER_NODE_PORT"] = str(18771)
+    rc = _run_pabot(args, exit)
+    process.kill()
     if zip:
         _clean_zip_dir()
         print(f"Zip file created to: {_create_zip()}")
@@ -271,23 +282,33 @@ def _create_zip():
 @task(clean_atest)
 def atest_robot(c):
     os.environ["ROBOT_SYSLOG_FILE"] = str(ATEST_OUTPUT / "syslog.txt")
-    command = f"robot --exclude Not-Implemented --loglevel DEBUG --outputdir {str(ATEST_OUTPUT)}"
+    command_args = [
+        sys.executable,
+        "-m",
+        "robot",
+        "--exclude",
+        "Not-Implemented",
+        "--loglevel",
+        "DEBUG",
+        "--outputdir",
+        str(ATEST_OUTPUT),
+    ]
     if platform.platform().startswith("Windows"):
-        command += " --exclude No-Windows-Support"
-    command += " atest/test"
-    print(command)
-    c.run(command)
+        command_args.extend(["--exclude", "No-Windows-Support"])
+    command_args.append("atest/test")
+    process = subprocess.Popen(command_args)
+    sys.exit(process.wait(600))
 
 
 @task(clean_atest)
 def atest_global_pythonpath(c):
-    _run_robot()
+    sys.exit(_run_pabot())
 
 
 # Running failed tests can't clean be cause the old output.xml is required for parsing which tests failed
 @task()
 def atest_failed(c):
-    _run_robot(["--rerunfailed", "atest/output/output.xml"])
+    _run_pabot(["--rerunfailed", "atest/output/output.xml"])
 
 
 @task()
@@ -296,12 +317,11 @@ def run_tests(c, tests):
     Run robot with dev Browser. Parameter [tests] is the path to tests to run.
     """
     process = subprocess.Popen(
-        [sys.executable, "-m", "robot", "--loglevel", "DEBUG", tests]
+        [sys.executable, "-m", "robot", "--loglevel", "DEBUG", "-d", "outs", tests]
     )
-    process.wait(600)
+    return process.wait(600)
 
-
-def _run_robot(extra_args=None, exit=True):
+def _run_pabot(extra_args=None, exit=True):
     os.environ["ROBOT_SYSLOG_FILE"] = str(ATEST_OUTPUT / "syslog.txt")
     pabot_args = [
         sys.executable,
@@ -466,10 +486,15 @@ def docs(c):
         file.write(str(soup))
 
 
-@task(clean, build, docs)
+@task
+def create_package(c):
+     shutil.copy(ROOT_DIR / "package.json", ROOT_DIR / "Browser" / "wrapper")
+     c.run("python setup.py sdist bdist_wheel")
+
+
+@task(clean, build, docs, create_package)
 def package(c):
-    shutil.copy(ROOT_DIR / "package.json", ROOT_DIR / "Browser" / "wrapper")
-    c.run("python setup.py sdist bdist_wheel")
+    pass
 
 
 @task

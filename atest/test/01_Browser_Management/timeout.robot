@@ -1,5 +1,5 @@
 *** Settings ***
-Library           Browser    run_on_failure=None
+Library           Browser    run_on_failure=None    enable_playwright_debug=${True}
 Resource          imports.resource
 Suite Setup       New Browser
 Suite Teardown    Close Browser
@@ -52,3 +52,11 @@ Set Browser Timeout Should Fail With Invalid Value And Not Change Existing Value
     ${new} =    Set Browser Timeout    ${old}
     Should Not Be Equal    ${old}    Nan
     Should Be Equal    ${new}    1 minute
+
+Calling Set Browser Timeout Without Open Contex Should Not Fail
+    [Documentation]
+    ...    LOG 1:2    INFO    GLOB:    No context open.
+    ...    LOG 3:2    DEBUG    GLOB:    Suppress error Error: Browser has been closed*
+    Set Browser Timeout    1s
+    Close Browser    ALL
+    Set Browser Timeout    1s

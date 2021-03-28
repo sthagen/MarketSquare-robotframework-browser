@@ -28,6 +28,7 @@ from ..utils import (
     GeoLocation,
     HttpCredentials,
     Proxy,
+    RecordHar,
     RecordVideo,
     SelectionType,
     SupportedBrowsers,
@@ -188,7 +189,10 @@ class PlaywrightState(LibraryComponent):
         ``browser`` < ``CURRENT`` | ``ALL`` | str > Id of the browser that belongs to the page to be closed.
         If ``ALL`` is passed, the requested pages depending of the context of all browsers are closed.
         Defaults to CURRENT.
+
+        Returns a list of dictionaries containing id, errors and console messages from the page.
         """
+        result = []
         with self.playwright.grpc_channel() as stub:
             catalog = self.library.get_browser_catalog()
 
@@ -229,7 +233,16 @@ class PlaywrightState(LibraryComponent):
                         if page != "CURRENT":
                             self.switch_page(p)
                         response = stub.ClosePage(Request().Empty())
-                        logger.info(response.log)
+                        if response.log:
+                            logger.info(response.log)
+                        result.append(
+                            {
+                                "errors": json.loads(response.errors),
+                                "console": json.loads(response.console),
+                                "id": response.pageId,
+                            }
+                        )
+        return result
 
     @keyword(tags=("Setter", "BrowserControl"))
     def connect_to_browser(
@@ -268,6 +281,7 @@ class PlaywrightState(LibraryComponent):
         env: Optional[Dict] = None,
         devtools: bool = False,
         slowMo: timedelta = timedelta(seconds=0),
+        channel: Optional[str] = None,
     ) -> str:
 
         """Create a new playwright Browser with specified options.
@@ -317,6 +331,10 @@ class PlaywrightState(LibraryComponent):
 
         ``slowMo`` Slows down Playwright operations by the specified amount of milliseconds.
         Useful so that you can see what is going on. Defaults to no delay.
+
+        ``channel`` Allows to operate against the stock Google Chrome and Microsoft Edge browsers.
+        For more details see:
+        [https://playwright.dev/docs/browsers/#google-chrome--microsoft-edge|Playwright documentation].
         """
         params = locals_to_params(locals())
         params = convert_typed_dict(self.new_context.__annotations__, params)
@@ -327,7 +345,10 @@ class PlaywrightState(LibraryComponent):
         browser_path = self.library.external_browser_executable.get(browser)
         if browser_path:
             params["executablePath"] = browser_path
-
+        if channel and browser != SupportedBrowsers.chromium:
+            raise ValueError(
+                f"Must use {SupportedBrowsers.chromium.name} browser with channel definition"
+            )
         options = json.dumps(params, default=str)
         logger.info(options)
 
@@ -367,6 +388,7 @@ class PlaywrightState(LibraryComponent):
         defaultBrowserType: Optional[SupportedBrowsers] = None,
         hideRfBrowser: bool = False,
         recordVideo: Optional[RecordVideo] = None,
+        recordHar: Optional[RecordHar] = None,
     ) -> str:
         """Create a new BrowserContext with specified options.
         See `Browser, Context and Page` for more information about BrowserContext.
@@ -423,7 +445,8 @@ class PlaywrightState(LibraryComponent):
 
         ``offline`` Whether to emulate network being offline. Defaults to False.
 
-        ``httpCredentials`` Credentials for HTTP authentication.
+        ``httpCredentials`` Credentials for
+        [https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication|HTTP authentication].
         - example: ``{'username': 'admin', 'password': '123456'}``
         - ``username``
         - ``password``
@@ -465,6 +488,16 @@ class PlaywrightState(LibraryComponent):
         each page will be scaled down if necessary to fit the specified size.
         `size` is dictionary containing `width` (Video frame width) and  `height`
         (Video frame height) keys.
+
+        ``recordHar`` Enables [http://www.softwareishard.com/blog/har-12-spec/|HAR] recording
+        for all pages into to a file. Must be path to file, example ${OUTPUT_DIR}/har.file.
+        If not specified, the HAR is not recorded. Make sure to await context to close for the
+        to be saved.
+
+        `omitContent`: Optional setting to control whether to omit request content
+        from the HAR. Default is False `path`: Path on the filesystem to write the HAR file to.
+
+        The ${OUTPUTDIR}/browser/ is removed at the first suite startup.
 
         Example:
         | Test an iPhone

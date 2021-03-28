@@ -14,14 +14,19 @@
 import json
 import os
 import re
+import shutil
 import string
 import sys
 import time
 from concurrent.futures._base import Future
 from datetime import timedelta
+from pathlib import Path
 from typing import Dict, List, Optional, Set, Union
 
+from assertionengine import AssertionOperator
 from robot.libraries.BuiltIn import EXECUTION_CONTEXTS, BuiltIn  # type: ignore
+from robot.result.model import TestCase as TestCaseResult  # type: ignore
+from robot.running.model import TestCase as TestCaseRunning  # type: ignore
 from robot.utils import secs_to_timestr, timestr_to_secs  # type: ignore
 from robotlibcore import DynamicCore  # type: ignore
 
@@ -139,15 +144,8 @@ class Browser(DynamicCore):
     When a `New Page` is called without an open browser, `New Browser`
     and `New Context` are executed with default values first.
 
-    If there is no browser opened in Suite Setup and `New Page` is executed in
-    Test Setup, the corresponding pages and context is closed automatically at the end of
-    the test. The browser process remains open and will be closed at the end of
-    execution.
-
     Each Browser, Context and Page has a unique ID with which they can be addressed.
     A full catalog of what is open can be received by `Get Browser Catalog` as dictionary.
-
-
 
     = Finding elements =
 
@@ -446,22 +444,7 @@ class Browser(DynamicCore):
 
     Keywords that accept arguments ``assertion_operator`` <`AssertionOperator`> and ``assertion_expected``
     can optionally assert.
-    Currently supported assertion operators are:
-
-    |      = Operator =   |   = Alternative Operators =       |              = Description =                                         | = Validate Equivalent =              |
-    | ``==``              | ``equal``, ``should be``          | Checks if returned value is equal to expected value.                 | ``value == expected``                |
-    | ``!=``              | ``inequal``, ``should not be``    | Checks if returned value is not equal to expected value.             | ``value != expected``                |
-    | ``>``               | ``greater than``                  | Checks if returned value is greater than expected value.             | ``value > expected``                 |
-    | ``>=``              |                                   | Checks if returned value is greater than or equal to expected value. | ``value >= expected``                |
-    | ``<``               | ``less than``                     | Checks if returned value is less than expected value.                | ``value < expected``                 |
-    | ``<=``              |                                   | Checks if returned value is less than or equal to expected value.    | ``value <= expected``                |
-    | ``*=``              | ``contains``                      | Checks if returned value contains expected value as substring.       | ``expected in value``                |
-    | ``^=``              | ``should start with``, ``starts`` | Checks if returned value starts with expected value.                 | ``re.search(f"^{expected}", value)`` |
-    | ``$=``              | ``should end with``, ``ends``     | Checks if returned value ends with expected value.                   | ``re.search(f"{expected}$", value)`` |
-    | ``matches``         |                                   | Checks if given RegEx matches minimum once in returned value.        | ``re.search(expected, value)``       |
-    | ``validate``        |                                   | Checks if given Python expression evaluates to ``True``.             |                                      |
-    | ``evaluate``        |  ``then``                         | When using this operator, the keyword does return the evaluated Python expression. |                        |
-
+    %ASSERTION_TABLE%
 
     But default the keywords will provide an error message if the assertion fails,
     but default error message can be overwritten with a ``message`` argument. The
@@ -531,13 +514,17 @@ class Browser(DynamicCore):
 
     = Automatic page and context closing =
 
-    Library will close pages and contexts that are created during test execution.
-    Pages and contexts created before test in Suite Setup or Suite Teardown will be closed after that suite.
-    This will remove the burden of closing these resources in teardowns.
+    %AUTO_CLOSING_LEVEL%
 
-    Browsers will not be automatically closed. A browser is expensive to create and should be reused.
+    = Experimental: Re-using same node process =
 
-    Automatic closing can be configured or switched off with the ``auto_closing_level`` library parameter.
+    Browser library integrated nodejs and python. NodeJS side can be also executed as a standalone process.
+    Browser libraries running on the same machine can talk to that instead of starting new node processes.
+    This can speed execution when running tests parallel.
+    To start node side run on the directory when Browser package is
+    ``PLAYWRIGHT_BROWSERS_PATH=0 node Browser/wrapper/index.js PORT``.
+    ``PORT`` is port you want to use for the node process.
+    To execute tests then with pabot for example do ``ROBOT_FRAMEWORK_BROWSER_NODE_PORT=PORT pabot ..``.
 
     = Extending Browser library with a JavaScript module =
 
@@ -604,14 +591,11 @@ class Browser(DynamicCore):
     """
 
     ROBOT_LIBRARY_VERSION = VERSION
-    ROBOT_LISTENER_API_VERSION = 2
+    ROBOT_LISTENER_API_VERSION = 3
     ROBOT_LIBRARY_LISTENER: "Browser"
     ROBOT_LIBRARY_SCOPE = "GLOBAL"
-    SUPPORTED_BROWSERS = ["chromium", "firefox", "webkit"]
-    _auto_closing_level: AutoClosingLevel
-    _pause_on_failure: Set["Browser"] = set()
     _context_cache = ContextCache()
-    presenter_mode = False
+    _suite_cleanup_done = False
 
     def __init__(
         self,
@@ -632,10 +616,9 @@ class Browser(DynamicCore):
         - ``enable_playwright_debug`` <bool>
           Enable low level debug information from the playwright tool. Mainly
           Useful for the library developers and for debugging purposes.
-        - ``auto_closing_level`` < ``SUITE`` | ``TEST`` | ``MANUAL`` >
-          Configure context and page automatic closing. Default is after each test.
-          Other options are SUITE for closing after each suite and MANUAL
-          for no automatic closing.
+        - ``auto_closing_level`` < ``TEST`` | ``SUITE`` | ``MANUAL`` >
+          Configure context and page automatic closing. Default is ``TEST``,
+          for more details, see `AutoClosingLevel`
         - ``retry_assertions_for`` <str>
           Timeout for retrying assertions on keywords before failing the keywords.
           This timeout starts counting from the first failure.
@@ -658,9 +641,9 @@ class Browser(DynamicCore):
         self.timeout = self.convert_timeout(timeout)
         self.retry_assertions_for = self.convert_timeout(retry_assertions_for)
         self.ROBOT_LIBRARY_LISTENER = self
-        self._execution_stack: List[object] = []
+        self._execution_stack: List[dict] = []
         self._running_on_failure_keyword = False
-        self._pause_on_failure = set()
+        self._pause_on_failure: Set["Browser"] = set()
         self.run_on_failure_keyword = (
             None if is_falsy(run_on_failure) else run_on_failure
         )
@@ -723,29 +706,37 @@ class Browser(DynamicCore):
         else:
             return "."
 
+    @property
+    def browser_output(self) -> Path:
+        return Path(self.outputdir, "browser")
+
     def _close(self):
         try:
             self.playwright.close()
         except ConnectionError as e:
             logger.trace(f"Browser library closing problem: {e}")
 
-    def _start_suite(self, name, attrs):
+    def _start_suite(self, suite, result):
+        if not self._suite_cleanup_done and self.browser_output.is_dir():
+            self._suite_cleanup_done = True
+            logger.debug(f"Removing: {self.browser_output}")
+            shutil.rmtree(str(self.browser_output), ignore_errors=True)
         if self._auto_closing_level != AutoClosingLevel.MANUAL:
             try:
                 self._execution_stack.append(self.get_browser_catalog())
             except ConnectionError as e:
                 logger.debug(f"Browser._start_suite connection problem: {e}")
 
-    def _start_test(self, name, attrs):
+    def _start_test(self, test, result):
         if self._auto_closing_level == AutoClosingLevel.TEST:
             try:
                 self._execution_stack.append(self.get_browser_catalog())
             except ConnectionError as e:
                 logger.debug(f"Browser._start_test connection problem: {e}")
 
-    def _end_test(self, name, attrs):
+    def _end_test(self, test: TestCaseRunning, result: TestCaseResult):
         if len(self._unresolved_promises) > 0:
-            logger.warn(f"Waiting unresolved promises at the end of test '{name}'")
+            logger.warn(f"Waiting unresolved promises at the end of test '{test.name}'")
             self.wait_for_all_promises()
         if self._auto_closing_level == AutoClosingLevel.TEST:
             if self.presenter_mode:
@@ -758,11 +749,11 @@ class Browser(DynamicCore):
                 catalog_before_test = self._execution_stack.pop()
                 self._prune_execution_stack(catalog_before_test)
             except AssertionError as e:
-                logger.debug(f"Test Case: {name}, End Test: {e}")
+                logger.debug(f"Test Case: {test.name}, End Test: {e}")
             except ConnectionError as e:
                 logger.debug(f"Browser._end_test connection problem: {e}")
 
-    def _end_suite(self, name, attrs):
+    def _end_suite(self, suite, result):
         if self._auto_closing_level != AutoClosingLevel.MANUAL:
             if len(self._execution_stack) == 0:
                 logger.debug("Browser._end_suite empty execution stack")
@@ -771,12 +762,11 @@ class Browser(DynamicCore):
                 catalog_before_suite = self._execution_stack.pop()
                 self._prune_execution_stack(catalog_before_suite)
             except AssertionError as e:
-                logger.debug(f"Test Suite: {name}, End Suite: {e}")
+                logger.debug(f"Test Suite: {suite.name}, End Suite: {e}")
             except ConnectionError as e:
                 logger.debug(f"Browser._end_suite connection problem: {e}")
 
     def _prune_execution_stack(self, catalog_before: dict) -> None:
-        # WIP CODE BEGINS
         catalog_after = self.get_browser_catalog()
         ctx_before_ids = [c["id"] for b in catalog_before for c in b["contexts"]]
         ctx_after_ids = [c["id"] for b in catalog_after for c in b["contexts"]]
@@ -800,17 +790,6 @@ class Browser(DynamicCore):
         new_page_ids = [p for p in pages_after if p not in pages_before]
         for page_id, ctx_id in new_page_ids:
             self._playwright_state.close_page(page_id, ctx_id)
-        # try to set active page and context back to right place.
-        # Not needed now that active page and context are just stack heads
-        """ for browser in catalog_after:
-            if browser["activeBrowser"]:
-                activeContext = browser.get("activeContext", None)
-                activePage = browser.get("activePage", None)
-                if not new_ctx_ids and activeContext is not None:
-                    self._playwright_state.switch_context(activeContext)
-                    if not (activePage, activeContext) in new_page_ids:
-                        self._playwright_state.switch_page(activePage)
-        """
 
     def run_keyword(self, name, args, kwargs=None):
         try:
@@ -874,7 +853,7 @@ class Browser(DynamicCore):
 
     def _failure_screenshot_path(self):
         valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-        test_name = BuiltIn().get_variable_value("${TEST NAME}")
+        test_name = BuiltIn().get_variable_value("${TEST NAME}", "GENERIC")
         return os.path.join(
             self.outputdir,
             "".join(c for c in test_name if c in valid_chars).replace(" ", "_")
@@ -893,3 +872,10 @@ class Browser(DynamicCore):
 
     def millisecs_to_timestr(self, timeout: float) -> str:
         return secs_to_timestr(timeout / 1000)
+
+    def get_keyword_documentation(self, name):
+        doc = DynamicCore.get_keyword_documentation(self, name)
+        if name == "__intro__":
+            doc = doc.replace("%ASSERTION_TABLE%", AssertionOperator.__doc__)
+            doc = doc.replace("%AUTO_CLOSING_LEVEL%", AutoClosingLevel.__doc__)
+        return doc

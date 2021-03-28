@@ -81,20 +81,6 @@ Close Page switches active page
     Close Page
     Get Title    matches    (?i)login
 
-Switch Browser
-    ${first_browser}    New Browser    chromium
-    New Page Login
-    ${first_url}    Get Url
-    ${second_browser}    New Browser    firefox
-    New Context
-    ${timeout}=    Set Browser Timeout    10s
-    New Page Form
-    ${second_url}    Get Url
-    ${before_switch}    Switch Browser    ${first_browser}
-    Should Be Equal As Strings    ${second_browser}    ${before_switch}
-    ${third_url}    Get Url
-    Get Title    matches    (?i)login
-
 Browser, Context and Page UUIDs
     ${browser}=    New Browser
     ${context}=    New Context
@@ -170,6 +156,15 @@ Page indices are unique
     ${second}=    New Page
     Should Not Be Equal    ${first}    ${second}
 
+Close Page gets errors and console log
+    ${id}=    New Page    ${ERROR_URL}
+    Click    "Crash click"
+    ${response}=    Close Page
+    Log    ${response}
+    Should be equal    ${response}[0][console][0][text]    Hello from warning
+    Should match    ${response}[0][errors][0]    Error: a is not defined*
+    Should be equal    ${response}[0][id]    ${id}
+
 Context indices are unique
     ${first}=    New Context
     Close Context
@@ -194,14 +189,14 @@ Close All Pages
     New Page
     New Page
     New Page
-    Close Page    ALL
+    ${closes}=    Close Page    ALL
+    Length Should Be    ${closes}    3
     ${current}=    Switch Page    CURRENT
     Should Be Equal    ${current}    NO PAGE OPEN
 
 Closing Page/Contex/Browser Multiple Times Should Not Cause Errors
     New Context
     New Page
-    Close Page
     Close Page
     Close Context
     Close Context
@@ -219,6 +214,7 @@ Closing Page/Contex/Browser Multiple Times With All Should Not Cause Errors
     Close Browser    ALL
 
 New Context with defaultBrowserType ff
+    [Timeout]    80s    # Because FF is just slow sometimes
     New Context    defaultBrowserType=firefox
     Verify Browser Type    firefox
 
