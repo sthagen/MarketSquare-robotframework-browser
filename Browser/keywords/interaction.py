@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import json
-import os
 from datetime import timedelta
 from time import sleep
 from typing import Any, Dict, Optional
@@ -24,7 +23,6 @@ from ..utils import (
     exec_scroll_function,
     get_abs_scroll_coordinates,
     get_rel_scroll_coordinates,
-    get_variable_value,
     keyword,
     locals_to_params,
     logger,
@@ -42,8 +40,6 @@ from ..utils.data_types import (
     ScrollBehavior,
     SelectAttribute,
 )
-
-NOT_FOUND = object()
 
 
 class Interaction(LibraryComponent):
@@ -153,7 +149,9 @@ class Interaction(LibraryComponent):
         See `Type Text` for details.
         """
         originals = self._get_original_values(locals())
-        secret = self._resolve_secret(secret, originals.get("secret") or secret)
+        secret = self.resolve_secret(
+            secret, originals.get("secret") or secret, "secret"
+        )
         self._type_text(selector, secret, delay, clear, log_response=False)
 
     def _get_original_values(self, local_args: Dict[str, Any]) -> Dict[str, Any]:
@@ -201,29 +199,10 @@ class Interaction(LibraryComponent):
         See `Fill Text` for other details.
         """
         originals = self._get_original_values(locals())
-        secret = self._resolve_secret(secret, originals.get("secret") or secret)
+        secret = self.resolve_secret(
+            secret, originals.get("secret") or secret, "secret"
+        )
         self._fill_text(selector, secret, log_response=False)
-
-    def _resolve_secret(self, secret_variable: str, original_secret) -> str:
-        secret = self._replace_placeholder_variables(secret_variable)
-        if secret == original_secret:
-            logger.warn(
-                "Direct assignment of values as 'secret' is deprecated."
-                "Use variables or environment variables instead."
-            )
-        return secret
-
-    def _replace_placeholder_variables(self, placeholder):
-        if not isinstance(placeholder, str) or placeholder[:1] not in "$%":
-            return placeholder
-        if placeholder.startswith("%"):
-            value = os.environ.get(placeholder[1:], NOT_FOUND)
-        else:
-            value = get_variable_value(placeholder, NOT_FOUND)
-        if value is NOT_FOUND:
-            logger.warn("Given variable placeholder could not be resolved.")
-            return placeholder
-        return value
 
     @keyword(tags=("Setter", "PageContent"))
     def press_keys(self, selector: str, *keys: str):
@@ -327,6 +306,18 @@ class Interaction(LibraryComponent):
                 )
             )
             logger.debug(response.log)
+
+    @keyword(tags=("PageContent",))
+    def record_selector(self):
+        """
+        Record the selector that is under mouse.
+        Focus on the page and move mouse over the element you want to select.
+        Press 's' to store the elements selector.
+        """
+        with self.playwright.grpc_channel() as stub:
+            response = stub.RecordSelector(Request.Empty())
+            logger.info(f"Selector: {response.result}")
+            return json.loads(response.result)
 
     @keyword(tags=("Setter", "PageContent"))
     def hover(
@@ -606,6 +597,47 @@ class Interaction(LibraryComponent):
                 Request().AlertAction(alertAction=action.name, promptInput=prompt_input)
             )
             logger.debug(response.log)
+
+    @keyword(tags=("Wait", "PageContent"))
+    def wait_for_alert(
+        self, action: DialogAction, prompt_input: str = "", text: Optional[str] = None
+    ):
+        """Handle next dialog on page with ``action`` as promise.
+
+        See `Handle Future Dialogs` for more details about ``action`` and what
+        types of dialogues are supported.
+
+        The main difference between this keyword and `Handle Future Dialogs`
+        is that `Handle Future Dialogs` keyword is automatically set as promise.
+        But this keyword must be called as argument to `Promise To` keyword. Also this
+        keyword can optionally verify the dialogue text and return it. If ``text`` is
+        argument ``None`` or is not set, dialogue text is not verified.
+
+        Example with returning text:
+
+        | ${promise} =       Promise To    Wait For Alert    action=accept
+        | Click              id=alerts
+        | ${text} =          Wait For      ${promise}
+        | Should Be Equal    ${text}       Am an alert
+
+        Example with text verify:
+
+        | ${promise} =       Promise To    Wait For Alert    action=accept    text=Am an alert
+        | Click              id=alerts
+        | ${text} =          Wait For      ${promise}
+        """
+        with self.playwright.grpc_channel() as stub:
+            response = stub.WaitForAlert(
+                Request().AlertAction(alertAction=action.name, promptInput=prompt_input)
+            )
+        logger.debug(response.log)
+        if text is not None:
+            assert (
+                text == response.body
+            ), f'Alert text was: "{response.body}" but it should have been: "{text}"'
+        else:
+            logger.debug("Not verifying alter text.")
+        return response.body
 
     @keyword(tags=("Setter", "PageContent"))
     def mouse_button(

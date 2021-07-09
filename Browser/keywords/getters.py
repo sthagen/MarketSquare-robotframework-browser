@@ -164,10 +164,8 @@ class Getters(LibraryComponent):
         with self.playwright.grpc_channel() as stub:
             response = stub.GetText(Request().ElementSelector(selector=selector))
             logger.debug(response.log)
-            if response.body:
-                value = json.loads(response.body)
             return verify_assertion(
-                value, assertion_operator, assertion_expected, "Text", message
+                response.body, assertion_operator, assertion_expected, "Text", message
             )
 
     @keyword(tags=("Getter", "Assertion", "PageContent"))
@@ -910,7 +908,7 @@ class Getters(LibraryComponent):
         - ``focused`` : to be the ``activeElement``.
         - ``checked`` : to be ``checked`` . Can be used on <input>.
 
-        Note that element must be attached to DOM to be able to fetch the state of ``readonly`` , ``selectec`` and ``checked``.
+        Note that element must be attached to DOM to be able to fetch the state of ``readonly`` , ``selected`` and ``checked``.
         The other states are false if the requested element is not attached.
 
         Note that element without any content or with display:none has an empty bounding box

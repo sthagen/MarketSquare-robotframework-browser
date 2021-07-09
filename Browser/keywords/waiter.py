@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+import time
 from datetime import timedelta
 from typing import Dict, Optional, Union
 
@@ -53,6 +54,7 @@ class Waiter(LibraryComponent):
         [https://docs.python.org/3/library/stdtypes.html#str.format|format] options.
         The `{function}` formatter is same ``state`` argument value.
         """
+        timeout_as_str = self.millisecs_to_timestr(self.get_timeout(timeout))
         funct = {
             ElementState.enabled: "e => !e.disabled",
             ElementState.disabled: "e => e.disabled",
@@ -71,15 +73,25 @@ class Waiter(LibraryComponent):
             ElementState.visible,
             ElementState.hidden,
         ]:
-            try:
-                self._wait_for_elements_state(selector, state, timeout)
-            except Exception:
-                if message:
-                    message = message.format(
-                        selector=selector, function=state, timeout=timeout
-                    )
-                    raise AssertionError(message)
-                raise
+            end = float(
+                self.convert_timeout(timeout, False) if timeout else self.timeout / 1000
+            )
+            end += time.monotonic()
+            while True:
+                try:
+                    return self._wait_for_elements_state(selector, state, timeout)
+                except Exception as error:
+                    if end > time.monotonic():
+                        logger.debug(f"Suppress error: {error}")
+                    else:
+                        if message:
+                            message = message.format(
+                                selector=selector,
+                                function=state,
+                                timeout=timeout_as_str,
+                            )
+                            raise AssertionError(message)
+                        raise
         else:
             self.wait_for_function(
                 funct[state], selector=selector, timeout=timeout, message=message
@@ -137,15 +149,24 @@ class Waiter(LibraryComponent):
         | Click         \\#progress_bar
         | Wait For      ${promise}
         """
-        try:
-            self._wait_for_function(function, selector, polling, timeout)
-        except Exception:
-            if message:
-                message = message.format(
-                    selector=selector, function=function, timeout=timeout
-                )
-                raise AssertionError(message)
-            raise
+        timeout_as_str = self.millisecs_to_timestr(self.get_timeout(timeout))
+        end = float(
+            self.convert_timeout(timeout, False) if timeout else self.timeout / 1000
+        )
+        end += time.monotonic()
+        while True:
+            try:
+                return self._wait_for_function(function, selector, polling, timeout)
+            except Exception as error:
+                if end > time.monotonic():
+                    logger.debug(f"Suppress {error}")
+                else:
+                    if message:
+                        message = message.format(
+                            selector=selector, function=function, timeout=timeout_as_str
+                        )
+                        raise AssertionError(message)
+                    raise
 
     def _wait_for_function(
         self,

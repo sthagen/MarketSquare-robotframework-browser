@@ -336,6 +336,8 @@ export class PlaywrightServer implements IPlaywrightServer {
         }
     }
 
+    recordSelector = this.wrappingPage(evaluation.recordSelector);
+
     async getPageState(
         call: ServerUnaryCall<Request.Empty, Response.JavascriptExecutionResult>,
         callback: sendUnaryData<Response.JavascriptExecutionResult>,
@@ -391,6 +393,7 @@ export class PlaywrightServer implements IPlaywrightServer {
 
     uploadFile = this.wrappingPage(interaction.uploadFile);
     handleAlert = this.wrappingPage(interaction.handleAlert);
+    waitForAlert = this.wrappingPage(interaction.waitForAlert);
     mouseMove = this.wrappingPage(interaction.mouseMove);
     mouseButton = this.wrappingPage(interaction.mouseButton);
     keyboardKey = this.wrappingPage(interaction.keyboardKey);

@@ -8,15 +8,16 @@ flake8 >= 3.9.0
 flake8-bugbear >= 21.3.2
 isort >= 5.7.0
 wheel>=0.35.1
-robotframework-pabot >= 1.11
+robotframework-pabot >= 2.0.0
 twine >= 3.4.1
-robotstatuschecker >= 2.0
+robotstatuschecker >= 2.0.3
 rellu >= 0.7
 approvaltests >= 0.3.2
 pytest-approvaltests >= 0.1.0
-pytest-mock==3.5.1
+pytest-mock==3.6.1
 # Required for injecting google analytics tags on release
 beautifulsoup4 >= 4.9.3
+psutil >= 1.10.0
 # Include normal dependencies from requirements.txt. Makes it possible to use
 # requirements-dev.txt as a single requirement file in PyCharm and other IDEs.
 -r requirements.txt

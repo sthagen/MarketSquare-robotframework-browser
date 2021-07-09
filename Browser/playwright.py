@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import atexit
 import contextlib
 import os
 import time
@@ -47,6 +48,7 @@ class Playwright(LibraryComponent):
     @cached_property
     def _playwright_process(self) -> Optional[Popen]:
         process = self.start_playwright()
+        atexit.register(self.close)
         self.wait_until_server_up()
         return process
 
@@ -149,11 +151,17 @@ class Playwright(LibraryComponent):
 
     def close(self):
         logger.debug("Closing all open browsers, contexts and pages in Playwright")
-        with self.grpc_channel() as stub:
-            response = stub.CloseAllBrowsers(Request().Empty())
-            logger.info(response.log)
-        self._channel.close()
-        playwright_process = self._playwright_process
+
+        try:
+            with self.grpc_channel() as stub:
+                response = stub.CloseAllBrowsers(Request().Empty())
+                logger.info(response.log)
+            self._channel.close()
+        except Exception as exc:
+            logger.debug(f"Failed to close browsers: {exc}")
+
+        # Access (possibly) cached property without actually invoking it
+        playwright_process = self.__dict__.get("_playwright_process")
         if playwright_process:
             logger.debug("Closing Playwright process")
             playwright_process.kill()

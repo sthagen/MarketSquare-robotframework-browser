@@ -65,11 +65,17 @@ message Request {
     string rawOptions = 1;
     bool hideRfBrowser = 2;
     int32 defaultTimeout = 3;
+    string traceFile = 4;
   }
 
   message Url {
     string url= 1;
     int32 defaultTimeout = 2;
+  }
+
+  message UrlOptions {
+    Url url = 1;
+    string waitUntil = 2;
   }
 
   message ConnectBrowser {
@@ -185,7 +191,7 @@ message Request {
 
   message AlertAction {
     string alertAction = 1;
-    string promptInput = 2;  
+    string promptInput = 2;
   }
 
   message Bool {
@@ -240,10 +246,19 @@ message Response {
     string result = 2;
   }
 
+  message NewContextResponse {
+    string id = 1;
+    string log = 2;
+    string contextOptions = 3;
+    bool newBrowser = 4;
+  }
+
   message NewPageResponse {
     string log = 1;
     string body = 2;
     string video = 3;
+    bool newBrowser = 4;
+    bool newContext = 5;
   }
 
   message PageReportResponse {
@@ -330,6 +345,7 @@ service  Playwright {
   rpc WaitForFunction(Request.WaitForFunctionOptions) returns (Response.Json);
   /* Executes javascript on the active page */
   rpc ExecuteJavascript(Request.JavascriptCode) returns (Response.JavascriptExecutionResult);
+  rpc RecordSelector(Request.Empty) returns (Response.JavascriptExecutionResult);
   /* Get Page State JSON */
   rpc GetPageState(Request.Empty) returns (Response.JavascriptExecutionResult);
   rpc SetViewportSize(Request.Viewport) returns (Response.Empty);
@@ -343,7 +359,7 @@ service  Playwright {
   rpc WaitForResponse(Request.HttpCapture) returns (Response.Json);
   rpc WaitForDownload(Request.FilePath) returns (Response.Json);
   rpc WaitUntilNetworkIsIdle(Request.Timeout) returns (Response.Empty);
-  rpc WaitForNavigation(Request.Url) returns (Response.Empty);
+  rpc WaitForNavigation(Request.UrlOptions) returns (Response.Empty);
   /* Geolocation */
   rpc SetGeolocation(Request.Json) returns (Response.Empty);
 
@@ -351,6 +367,7 @@ service  Playwright {
   rpc GetDevices(Request.Empty) returns (Response.Json);
 
   rpc HandleAlert(Request.AlertAction) returns (Response.Empty);
+  rpc WaitForAlert(Request.AlertAction) returns (Response.String);
 
   rpc MouseButton(Request.MouseButtonOptions) returns (Response.Empty);
   rpc MouseMove(Request.Json) returns (Response.Empty);
@@ -368,7 +385,7 @@ service  Playwright {
   rpc SwitchContext(Request.Index) returns (Response.String);
   rpc SwitchBrowser(Request.Index) returns (Response.String);
   rpc NewPage(Request.Url) returns (Response.NewPageResponse);
-  rpc NewContext(Request.Context) returns (Response.String);
+  rpc NewContext(Request.Context) returns (Response.NewContextResponse);
   rpc NewBrowser(Request.Browser) returns (Response.String);
   rpc ConnectToBrowser(Request.ConnectBrowser) returns (Response.String);
   rpc CloseBrowser(Request.Empty) returns (Response.String);

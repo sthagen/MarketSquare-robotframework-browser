@@ -76,11 +76,18 @@ Wait For Elements State fails On Too Short Timeout
     ...    STARTS:TimeoutError: page.waitForFunction: Timeout 300ms exceeded.
     ...    Wait For Elements State    \#victim    unchecked    300ms
 
+Wait For Elements State fails On Too Short Global Timeout
+    ${timeout} =    Set Browser Timeout    0.3 s
+    Run Keyword and Expect Error
+    ...    Custom Error #submit, ElementState.hidden and 300 milliseconds
+    ...    Wait For Elements State    \#submit    hidden    ${None}    Custom Error {selector}, {function} and {timeout}
+    [Teardown]    Set Browser Timeout    ${timeout}
+
 Wait For Elements State Fails On Too Short Timeout Custom Error With Formatting
     Select Options By    \#dropdown    value    unchecked
     Click    \#submit    noWaitAfter=True
     Run Keyword and Expect Error
-    ...    Custom Error #victim, e => !e.checked and 0:00:00.300000
+    ...    Custom Error #victim, e => !e.checked and 300 milliseconds
     ...    Wait For Elements State    \#victim    unchecked    300ms    Custom Error {selector}, {function} and {timeout}
 
 Wait For Elements State Fails On Too Short Timeout Custom Error
@@ -94,7 +101,7 @@ Wait For Elements State Fails On Too Short Timeout Custom Error And Hidden
     Select Options By    \#dropdown    value    unchecked
     Click    \#submit    noWaitAfter=True
     Run Keyword and Expect Error
-    ...    Custom Error #victim, ElementState.hidden and 0:00:00.300000
+    ...    Custom Error #victim, ElementState.hidden and 300 milliseconds
     ...    Wait For Elements State    \#victim    hidden    300ms    Custom Error {selector}, {function} and {timeout}
 
 Wait For Elements State to hide with Promise
@@ -125,4 +132,4 @@ Wait For Elements State to hide with Promise and wait for all promises
     Wait For Elements State    \#victim    visible    300ms
     Wait For All Promises
     ${end}=    Evaluate    time.time()
-    Should Be True    ($end - $start) < 0.7
+    Should Be True    ($end - $start) < 0.9

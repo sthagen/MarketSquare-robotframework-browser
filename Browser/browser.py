@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Union
 
 from assertionengine import AssertionOperator
+from overrides import overrides
 from robot.libraries.BuiltIn import EXECUTION_CONTEXTS, BuiltIn  # type: ignore
 from robot.result.model import TestCase as TestCaseResult  # type: ignore
 from robot.running.model import TestCase as TestCaseRunning  # type: ignore
@@ -50,7 +51,7 @@ from .playwright import Playwright
 from .utils import AutoClosingLevel, is_falsy, is_same_keyword, keyword, logger
 
 # Importing this directly from .utils break the stub type checks
-from .utils.data_types import SupportedBrowsers
+from .utils.data_types import DelayedKeyword, SupportedBrowsers
 from .version import __version__ as VERSION
 
 
@@ -162,6 +163,7 @@ class Browser(DynamicCore):
     | ``text``     | Browser text engine.       | ``text=Login``                     |
     | ``id``       | Element ID Attribute.      | ``id=login_btn``                   |
 
+    CSS Selectors can also be recorded with `Record selector` keyword.
 
     == Explicit Selector Strategy ==
 
@@ -596,6 +598,7 @@ class Browser(DynamicCore):
     ROBOT_LIBRARY_SCOPE = "GLOBAL"
     _context_cache = ContextCache()
     _suite_cleanup_done = False
+    run_on_failure_keyword: Optional[DelayedKeyword] = None
 
     def __init__(
         self,
@@ -645,7 +648,7 @@ class Browser(DynamicCore):
         self._running_on_failure_keyword = False
         self._pause_on_failure: Set["Browser"] = set()
         self.run_on_failure_keyword = (
-            None if is_falsy(run_on_failure) else run_on_failure
+            None if is_falsy(run_on_failure) else {"name": run_on_failure, "args": ()}
         )
         self.external_browser_executable: Dict[SupportedBrowsers, str] = (
             external_browser_executable or {}
@@ -709,12 +712,6 @@ class Browser(DynamicCore):
     @property
     def browser_output(self) -> Path:
         return Path(self.outputdir, "browser")
-
-    def _close(self):
-        try:
-            self.playwright.close()
-        except ConnectionError as e:
-            logger.trace(f"Browser library closing problem: {e}")
 
     def _start_suite(self, suite, result):
         if not self._suite_cleanup_done and self.browser_output.is_dir():
@@ -840,13 +837,18 @@ class Browser(DynamicCore):
             return
         try:
             self._running_on_failure_keyword = True
-            if is_same_keyword(self.run_on_failure_keyword, "Take Screenshot"):
-                self.take_screenshot(self._failure_screenshot_path())
+            if is_same_keyword(self.run_on_failure_keyword["name"], "Take Screenshot"):
+                args = self.run_on_failure_keyword["args"]
+                path = args[0] if args else self._failure_screenshot_path()
+                self.take_screenshot(path)
             else:
-                BuiltIn().run_keyword(self.run_on_failure_keyword)
+                BuiltIn().run_keyword(
+                    self.run_on_failure_keyword["name"],
+                    *self.run_on_failure_keyword["args"],
+                )
         except Exception as err:
             logger.warn(
-                f"Keyword '{self.run_on_failure_keyword}' could not be run on failure:\n{err}"
+                f"Keyword '{self.run_on_failure_keyword['name']}' could not be run on failure:\n{err}"
             )
         finally:
             self._running_on_failure_keyword = False
@@ -865,14 +867,18 @@ class Browser(DynamicCore):
             return self.timeout
         return self.convert_timeout(timeout)
 
-    def convert_timeout(self, timeout: Union[timedelta, float]) -> float:
+    def convert_timeout(
+        self, timeout: Union[timedelta, float], to_ms: bool = True
+    ) -> float:
+        convert = 1000 if to_ms else 1
         if isinstance(timeout, timedelta):
-            return timeout.total_seconds() * 1000
-        return timestr_to_secs(timeout) * 1000
+            return timeout.total_seconds() * convert
+        return timestr_to_secs(timeout) * convert
 
     def millisecs_to_timestr(self, timeout: float) -> str:
         return secs_to_timestr(timeout / 1000)
 
+    @overrides
     def get_keyword_documentation(self, name):
         doc = DynamicCore.get_keyword_documentation(self, name)
         if name == "__intro__":

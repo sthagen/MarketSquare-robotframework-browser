@@ -5,20 +5,23 @@ import zipfile
 from pathlib import Path, PurePath
 import platform
 import re
+import traceback
 import shutil
 
 from invoke import task, Exit
-from robot import rebot_cli
-from robot import __version__ as robot_version
 
 try:
+    from robot import rebot_cli
+    from robot import __version__ as robot_version
     from pabot import pabot
     import pytest
     from rellu import ReleaseNotesGenerator, Version
     from robot.libdoc import libdoc
     import robotstatuschecker
     import bs4
+    from Browser.utils import find_free_port
 except ModuleNotFoundError:
+    traceback.print_exc()
     print('Assuming that this is for "inv deps" command and ignoring error.')
 
 ROOT_DIR = Path(os.path.dirname(__file__))
@@ -56,7 +59,7 @@ to install the latest available release or use
 to install exactly this version. Alternatively you can download the source
 distribution from PyPI_ and install it manually.
 Browser library {version} was released on {date}. Browser supports
-Python **>=3.7**, and Robot Framework **>=3.2**.
+Python 3.7+, Node 12/14 LTS and Robot Framework 3.2+.
 
 .. _Robot Framework: http://robotframework.org
 .. _Browser: https://github.com/MarketSquare/robotframework-browser
@@ -161,7 +164,7 @@ def _node_protobuf_gen(c):
 @task(protobuf)
 def node_build(c):
     if _sources_changed(
-        node_dir.glob("**/*.ts"), node_timestamp_file
+        node_dir.glob("**/*.[tj]s"), node_timestamp_file
     ) or _sources_changed(node_dir.glob("**/*.tsx"), node_timestamp_file):
         c.run("yarn build")
         node_timestamp_file.touch()
@@ -244,12 +247,13 @@ def atest(c, suite=None, include=None, zip=None):
     logfile = open(Path(ATEST_OUTPUT, "playwright-log.txt"), "w")
     os.environ["DEBUG"] = "pw:api"
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
+    port = str(find_free_port())
     process = subprocess.Popen([
         "node",
         "Browser/wrapper/index.js",
-        "18771",
+        port,
     ], stdout=logfile, stderr=subprocess.STDOUT)
-    os.environ["ROBOT_FRAMEWORK_BROWSER_NODE_PORT"] = str(18771)
+    os.environ["ROBOT_FRAMEWORK_BROWSER_NODE_PORT"] = port
     rc = _run_pabot(args, exit)
     process.kill()
     if zip:
@@ -302,7 +306,7 @@ def atest_robot(c):
 
 @task(clean_atest)
 def atest_global_pythonpath(c):
-    sys.exit(_run_pabot())
+    sys.exit(_run_pabot(["--variable", "SYS_VAR_CI:True"]))
 
 
 # Running failed tests can't clean be cause the old output.xml is required for parsing which tests failed
@@ -321,6 +325,7 @@ def run_tests(c, tests):
     )
     return process.wait(600)
 
+
 def _run_pabot(extra_args=None, exit=True):
     os.environ["ROBOT_SYSLOG_FILE"] = str(ATEST_OUTPUT / "syslog.txt")
     pabot_args = [
@@ -328,8 +333,10 @@ def _run_pabot(extra_args=None, exit=True):
         "-m",
         "pabot.pabot",
         "--pabotlib",
+        "--pabotlibport",
+        "0",
         "--artifacts",
-        "png,webm",
+        "png,webm,zip",
         "--artifactsinsubfolders",
     ]
     default_args = [

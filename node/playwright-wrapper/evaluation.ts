@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as path from 'path';
 import { ElementHandle, Page } from 'playwright';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -66,9 +67,13 @@ export async function executeJavascript(
     const selector = request.getSelector();
     let script = request.getScript();
     let elem;
+    try {
+        script = eval(script);
+    } catch (error) {
+        logger.info(`On executeJavascript, supress ${error} for eval.`);
+    }
     if (selector) {
         elem = await determineElement(state, selector);
-        script = eval(script);
     }
     const result = await page.evaluate(script, elem);
     return jsResponse(result as string, 'JavaScript executed successfully.');
@@ -100,6 +105,11 @@ export async function waitForFunction(
     logger.info(`unparsed args: ${script}, ${request.getSelector()}, ${request.getOptions()}`);
 
     let elem;
+    try {
+        script = eval(script);
+    } catch (error) {
+        logger.info(`On waitForFunction, supress ${error} for eval.`);
+    }
     if (selector) {
         elem = await determineElement(state, selector);
         script = eval(script);
@@ -114,6 +124,35 @@ export async function addStyleTag(request: Request.StyleTag, page: Page): Promis
     const content = request.getContent();
     await page.addStyleTag({ content });
     return emptyWithLog('added Style: ' + content);
+}
+
+export async function recordSelector(request: Request.Empty, page: Page): Promise<Response.JavascriptExecutionResult> {
+    await page.addScriptTag({
+        type: 'module',
+        path: path.join(__dirname, '/static/selector-finder.js'),
+    });
+    await page.bringToFront();
+    const result = await page.evaluate(() => {
+        function rafAsync() {
+            return new Promise((resolve) => {
+                requestAnimationFrame(resolve); //faster than set time out
+            });
+        }
+
+        // @ts-ignore
+        function waitUntilRecorderAvailable() {
+            // @ts-ignore
+            if (!window.selectorRecorderFindSelector) {
+                return rafAsync().then(() => waitUntilRecorderAvailable());
+            } else {
+                // @ts-ignore
+                return Promise.resolve(window.selectorRecorderFindSelector());
+            }
+        }
+
+        return waitUntilRecorderAvailable();
+    });
+    return jsResponse(result as string, 'Selector recorded.');
 }
 
 export async function highlightElements(
