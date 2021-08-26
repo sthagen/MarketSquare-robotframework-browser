@@ -206,8 +206,8 @@ class Interaction(LibraryComponent):
         See `Fill Text` for other details.
 
         Example:
-        | Fill Secret    input#username_field    $username    # Keyword resolves variable value from Robot Framework variables
-        | Fill Secret    input#username_field    %username    # Keyword resolves variable value from environment variables
+        | `Fill Secret`    input#username_field    $username    # Keyword resolves variable value from Robot Framework variables
+        | `Fill Secret`    input#username_field    %username    # Keyword resolves variable value from environment variables
         """
         originals = self._get_original_values(locals())
         secret = self.resolve_secret(
@@ -233,8 +233,8 @@ class Interaction(LibraryComponent):
         [https://playwright.dev/docs/api/class-page#pagepressselector-key-options | Playwright docs for press.]
 
         Example:
-        | # Keyword       Selector                    *Keys
-        | Press Keys      //*[@id="username_field"]    h    e   l   o   ArrowLeft   l
+        | # Keyword         Selector                    *Keys
+        | `Press Keys`      //*[@id="username_field"]    h    e   l   o   ArrowLeft   l
         """  # noqa
         with self.playwright.grpc_channel() as stub:
             response = stub.Press(Request().PressKeys(selector=selector, key=keys))
@@ -533,7 +533,10 @@ class Interaction(LibraryComponent):
         If no values to select are passed will deselect options in element.
 
         Example:
-        | `Select Options By`   \\#dropdown    value    attached
+        | `Select Options By`    label    select[name=preferred_channel]    Direct mail
+        | `Select Options By`    value    select[name=interests]    males    females    others
+        | `Select Options By`    index    select[name=possible_channels]    0    2
+        | `Select Options By`    text     select[name=interests]    Males    Females
         """
         matchers = ""
         if not values or len(values) == 1 and not values[0]:
@@ -611,8 +614,8 @@ class Interaction(LibraryComponent):
             ``action`` equals accept. Defaults to empty string.
 
         Example:
-        | Handle Future Dialogs    action=accept
-        | Click                    \\#alerts
+        | `Handle Future Dialogs`    action=accept
+        | `Click`                    \\#alerts
         """
 
         with self.playwright.grpc_channel() as stub:
@@ -640,10 +643,10 @@ class Interaction(LibraryComponent):
 
         Example with returning text:
 
-        | ${promise} =       Promise To    Wait For Alert    action=accept
-        | Click              id=alerts
-        | ${text} =          Wait For      ${promise}
-        | Should Be Equal    ${text}       Am an alert
+        | ${promise} =         `Promise To`    `Wait For Alert`    action=accept
+        | `Click`              id=alerts
+        | ${text} =            `Wait For`      ${promise}
+        | Should Be Equal      ${text}         Am an alert
 
         Example with text verify:
 
@@ -688,6 +691,12 @@ class Interaction(LibraryComponent):
         Can only be set if the action is click.
 
         Moving the mouse between holding down and releasing it, is possible with `Mouse Move`.
+
+        Example:
+        | `Hover`                     "Obstacle"           # Move mouse over the element
+        | `Mouse Button`              down                 # Press mouse button down
+        | `Mouse Move Relative To`    "Obstacle"    500    # Drag mouse
+        | `Mouse Button`              up                   # Release mouse button
         """
         with self.playwright.grpc_channel() as stub:
             if x and y:
@@ -715,6 +724,7 @@ class Interaction(LibraryComponent):
     def drag_and_drop(self, selector_from: str, selector_to: str, steps: int = 1):
         """Executes a Drag&Drop operation from the element selected by ``selector_from``
         to the element selected by ``selector_to``.
+
         See the `Finding elements` section for details about the selectors.
 
         First it moves the mouse to the start-point,
@@ -729,6 +739,9 @@ class Interaction(LibraryComponent):
         ``selector_to`` identifies the element, which center is the end-point.
 
         ``steps`` defines how many intermediate mouse move events are sent.
+
+        Example
+        | `Drag And Drop`    "Circle"    "Goal"
         """
         from_bbox = self.library.get_boundingbox(selector_from)
         from_xy = self._center_of_boundingbox(from_bbox)
@@ -757,6 +770,11 @@ class Interaction(LibraryComponent):
         ``to_x`` & ``to_y`` identify the the end-point.
 
         ``steps`` defines how many intermediate mouse move events are sent.
+
+        Example:
+        | `Drag And Drop By Coordinates`
+        | ...    from_x=30    from_y=30
+        | ...    to_x=10    to_y=10    steps=200
         """
         self.mouse_button(MouseButtonAction.down, x=from_x, y=from_y)
         self.mouse_move(x=to_x, y=to_y, steps=steps)
@@ -779,6 +797,9 @@ class Interaction(LibraryComponent):
 
         ``steps`` Number of intermediate steps for the mouse event.
         This is sometime needed for websites to recognize the movement.
+
+        Example:
+        | `Mouse Move Relative To`    id=indicator    -100
         """
         with self.playwright.grpc_channel() as stub:
             bbox = self.library.get_boundingbox(selector)
@@ -807,6 +828,9 @@ class Interaction(LibraryComponent):
         of the page.
 
         ``steps`` Number of intermediate steps for the mouse event.
+
+        Example:
+        | `Mouse Move`    400    400
         """
         with self.playwright.grpc_channel() as stub:
             body: MouseOptionsDict = {"x": x, "y": y, "options": {"steps": steps}}
@@ -834,11 +858,11 @@ class Interaction(LibraryComponent):
         ``Shift``, ``Control``, ``Alt``, ``Meta``, ``ShiftLeft``
 
         Example excecution:
-        | Keyboard Key    press    S
-        | Keyboard Key    down     Shift
-        | Keyboard Key    press    ArrowLeft
-        | Keyboard Key    press    Delete
-        | Keyboard Key    up       Shift
+        | `Keyboard Key`    press    S
+        | `Keyboard Key`    down     Shift
+        | `Keyboard Key`    press    ArrowLeft
+        | `Keyboard Key`    press    Delete
+        | `Keyboard Key`    up       Shift
 
         Note: Capital letters don't need to be written by the help of Shift. You can type them in directly.
         """
@@ -863,6 +887,9 @@ class Interaction(LibraryComponent):
         Note: To press a special key, like Control or ArrowDown, use keyboard.press.
         Modifier keys DO NOT effect these methods. For testing modifier effects use single key
         presses with ``Keyboard Key  press``
+
+        Example:
+        | `Keyboard Input`    insertText    0123456789
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.KeyboardInput(

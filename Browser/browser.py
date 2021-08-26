@@ -632,10 +632,11 @@ class Browser(DynamicCore):
         enable_playwright_debug: bool = False,
         auto_closing_level: AutoClosingLevel = AutoClosingLevel.TEST,
         retry_assertions_for: timedelta = timedelta(seconds=1),
-        run_on_failure: str = "Take Screenshot",
+        run_on_failure: str = "Take Screenshot  fail-screenshot-{index}",
         external_browser_executable: Optional[Dict[SupportedBrowsers, str]] = None,
         jsextension: Optional[str] = None,
         enable_presenter_mode: bool = False,
+        playwright_process_port: Optional[int] = None,
     ):
         """Browser library can be taken into use with optional arguments:
 
@@ -655,7 +656,8 @@ class Browser(DynamicCore):
           This allows stopping execution faster to assertion failure when element is found fast.
         - ``run_on_failure`` <str>
           Sets the keyword to execute in case of a failing Browser keyword.
-          It can be the name of any keyword that does not have any mandatory argument.
+          It can be the name of any keyword. If the keyword has arguments those must be separated with
+          two spaces for example ``My keyword \\ arg1 \\ arg2``.
           If no extra action should be done after a failure, set it to ``None`` or any other robot falsy value.
         - ``external_browser_executable`` <Dict <SupportedBrowsers, Path>>
           Dict mapping name of browser to path of executable of a browser.
@@ -673,9 +675,7 @@ class Browser(DynamicCore):
         self._execution_stack: List[dict] = []
         self._running_on_failure_keyword = False
         self._pause_on_failure: Set["Browser"] = set()
-        self.run_on_failure_keyword = (
-            None if is_falsy(run_on_failure) else {"name": run_on_failure, "args": ()}
-        )
+        self.run_on_failure_keyword = self._parse_run_on_failure_keyword(run_on_failure)
         self.external_browser_executable: Dict[SupportedBrowsers, str] = (
             external_browser_executable or {}
         )
@@ -696,13 +696,26 @@ class Browser(DynamicCore):
             Waiter(self),
             WebAppState(self),
         ]
-        self.playwright = Playwright(self, enable_playwright_debug)
+        self.playwright = Playwright(
+            self, enable_playwright_debug, playwright_process_port
+        )
         self._auto_closing_level = auto_closing_level
         self.current_arguments = ()
         if jsextension is not None:
             libraries.append(self._initialize_jsextension(jsextension))
         self.presenter_mode = enable_presenter_mode
         DynamicCore.__init__(self, libraries)
+
+    @staticmethod
+    def _parse_run_on_failure_keyword(
+        keyword_with_args: str,
+    ) -> Optional[DelayedKeyword]:
+        if is_falsy(keyword_with_args):
+            return None
+        parts = keyword_with_args.split("  ")
+        if len(parts) < 1:
+            return None
+        return {"name": parts[0], "args": tuple(parts[1:])}
 
     def _initialize_jsextension(self, jsextension: str) -> LibraryComponent:
         component = LibraryComponent(self)
@@ -856,7 +869,7 @@ class Browser(DynamicCore):
                 self.screenshot_on_failure(test.name)
 
     def keyword_error(self):
-        """Sends screenshot command to Playwright.
+        """Runs keyword on failure.
 
         Only works during testing since this uses robot's outputdir for output.
         """
