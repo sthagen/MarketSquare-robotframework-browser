@@ -91,6 +91,15 @@ ElementHandle Screenshotting
     File Should Exist    ${TestScreenshot}.png
     [Teardown]    Remove File    ${TestScreenshot}.png
 
+Take Take screenshot With Strict
+    Run Keyword And Expect Error
+    ...    *Error: strict mode violation: selector resolved to 4 elements.*
+    ...    Take screenshot    selector=//input
+    Set Strict Mode    False
+    ${path} =    Take screenshot    browser-strict    selector=//input
+    Set Strict Mode    True
+    [Teardown]    Remove File    ${path}
+
 Screenshotting Without Path
     Remove File    ${OUTPUT_DIR}/*.png
     ${path1} =    Take Screenshot
