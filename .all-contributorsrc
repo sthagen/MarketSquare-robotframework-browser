@@ -425,6 +425,24 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "ealap",
+      "name": "Emmanuel Alap",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15620712?v=4",
+      "profile": "https://github.com/ealap",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "ankurbhalla-gmail",
+      "name": "ankurbhalla-gmail",
+      "avatar_url": "https://avatars.githubusercontent.com/u/90744440?v=4",
+      "profile": "https://github.com/ankurbhalla-gmail",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
