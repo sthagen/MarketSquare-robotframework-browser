@@ -12,29 +12,123 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { BrowserContext, ElementHandle, Frame, Page, errors } from 'playwright';
+import { Frame, Locator, Page } from 'playwright';
 
-import { PlaywrightState } from './playwright-state';
+import { LocatorCount, PlaywrightState } from './playwright-state';
 
 import * as pino from 'pino';
 const logger = pino.default({ timestamp: pino.stdTimeFunctions.isoTime });
 
-export async function waitUntilElementExists<T>(
+/**
+ * Resolve the playwright Locator on active page, frame or elementHandle.
+ *
+ * @param state A reference to current PlaywrightState object.
+ * @param selector A valid Playwright selector, Frame piercing selector "#iframe >>> //button"
+ *  or selector containing Locator handle in the front. element=123-456-789 >> css=input
+ * @param strictMode Used with combination on firstOnly param. When strictMode is false, firstOnly is applied.
+ * @param nthLocator Find nth locator from the page, frame, locator: https://playwright.dev/docs/api/class-locator#locator-nth
+ * @param firstOnly If True locator matching to first element returned else locator can point to multiple elements.
+ * */
+
+export async function findLocator(
     state: PlaywrightState,
     selector: string,
     strictMode: boolean,
-): Promise<ElementHandle> {
-    const { elementSelector, context } = await determineContextAndSelector(state, selector, strictMode);
-    logger.info(`Strict mode is: ${strictMode}`);
-    if (elementSelector === undefined) {
-        // This type cast is safe because elementSelector is only undefined when an ElementHandle gets returned
-        return context as ElementHandle;
-    } else if ('waitForSelector' in context) {
-        await context.waitForSelector(elementSelector, { state: 'attached', strict: strictMode });
+    nthLocator: number | undefined,
+    firstOnly: boolean,
+): Promise<Locator> {
+    const activePage = state.getActivePage();
+    let locator = undefined;
+    exists(activePage, 'Could not find active page');
+    if (isElementHandleSelector(selector)) {
+        const { elementHandleId, subSelector } = splitElementHandleAndElementSelector(selector);
+        locator = state.getLocator(elementHandleId);
+        selector = subSelector;
+        if (!selector) {
+            logger.info('Only locator handle defined, return cached Locator.');
+            return locator.locator;
+        }
     }
-    const element = await context.$(elementSelector, { strict: strictMode });
-    exists(element, `Could not find element with selector \`${elementSelector}\` within timeout.`);
-    return element;
+    if (isFramePiercingSelector(selector)) {
+        return await findInFrames(activePage, selector, strictMode, nthLocator);
+    }
+    if (nthLocator !== undefined) {
+        return await findNthLocator(activePage, selector, nthLocator, locator);
+    } else if (strictMode) {
+        if (locator?.locator) {
+            logger.info(`Strict mode is enabled, find Locator with ${selector} within locator.`);
+            return locator.locator.locator(selector);
+        } else {
+            logger.info(`Strict mode is enabled, find Locator with ${selector} in page.`);
+            return activePage.locator(selector);
+        }
+    } else {
+        return await findLocatorNotStrict(activePage, selector, firstOnly, locator);
+    }
+}
+
+async function findInFrames(
+    activePage: Page,
+    selector: string,
+    strictMode: boolean,
+    nthLocator: number | undefined,
+): Promise<Locator> {
+    let selectors = splitFrameAndElementSelector(selector);
+    let frame = await findFrame(activePage, selectors.frameSelector, strictMode);
+    while (isFramePiercingSelector(selectors.elementSelector)) {
+        selectors = splitFrameAndElementSelector(selectors.elementSelector);
+        frame = await findFrame(frame, selectors.frameSelector, strictMode);
+    }
+    if (nthLocator) {
+        logger.info(`Find ${nthLocator} locator in frame.`);
+        return frame.locator(selectors.elementSelector).nth(nthLocator);
+    } else if (strictMode) {
+        logger.info(`Strict mode is enabled, find with ${selector} in frame.`);
+        return frame.locator(selectors.elementSelector);
+    } else {
+        logger.info(`Strict mode is disabled, return first Locator: ${selector} in frame.`);
+        return frame.locator(selectors.elementSelector).first();
+    }
+}
+
+async function findNthLocator(
+    activePage: Page,
+    selector: string,
+    nthLocator: number,
+    locator?: LocatorCount,
+): Promise<Locator> {
+    if (locator?.locator) {
+        logger.info(`Find ${nthLocator} Locator within locator.`);
+        return locator.locator.locator(selector).nth(nthLocator);
+    } else {
+        logger.info(`Find ${nthLocator} Locator in page.`);
+        return activePage.locator(selector).nth(nthLocator);
+    }
+}
+
+async function findLocatorNotStrict(
+    activePage: Page,
+    selector: string,
+    firstOnly: boolean,
+    locator?: LocatorCount,
+): Promise<Locator> {
+    if (locator?.locator) {
+        if (firstOnly) {
+            logger.info(`Strict mode is disbaled, return first Locator: ${selector} with locator.`);
+            return locator.locator.locator(selector).first();
+        } else {
+            logger.info(`Strict mode is disbaled, return Locator: ${selector} with locator.`);
+            return locator.locator.locator(selector);
+        }
+    } else {
+        if (firstOnly) {
+            logger.info(`Strict mode is disbaled, return first Locator: ${selector} in page.`);
+            return (locator?.locator || activePage).locator(selector).first();
+        } else {
+            logger.info(`Strict mode is disbaled, return Locator: ${selector} in page.`);
+            return (locator?.locator || activePage).locator(selector);
+        }
+    }
 }
 
 export async function invokeOnMouse<T>(
@@ -58,96 +152,6 @@ export async function invokeOnKeyboard<T>(
     const fn: any = page.keyboard[methodName].bind(page.keyboard);
     exists(fn, `Bind failure with '${fn}'`);
     return await fn(...Object.values(args));
-}
-
-/**
- * Resolve the playwright method on page, frame or elementHandle and invoke it.
- * With a normal selector, invokes the `methodName` on the given `page`.
- * If the selector is a frame piercing selector, first find the corresponding
- * frame on the `page`, and then invoke the `methodName` on the resolved frame.
- * If the selector is an elementHandle selector, first resolve the corresponding e
- * elementHandle, and invoke the method on it.
- *
- * @param state A reference to current PlaywrightState object.
- * @param methodName Which Playwright method to invoke. The method should take selector as an argument.
- * @param selector Selector of the element to operate on,
- *  or a frame piercing selector in format `<frame selector> >>> <element selector>
- */
-
-export async function invokePlaywrightMethod<T>(
-    state: PlaywrightState,
-    methodName: string,
-    selector: string,
-    strictMode: boolean,
-    ...args: any[]
-) {
-    type strDict = { [key: string]: any };
-    const { elementSelector, context } = await determineContextAndSelector(state, selector, strictMode);
-    logger.info(`Page|Frame|Element resolved elementSelector: ${elementSelector}`);
-    if (elementSelector) {
-        await context.$(elementSelector, { strict: strictMode });
-        const fn = (context as strDict)[methodName].bind(context);
-        return await fn(elementSelector, ...args);
-    } else {
-        if (methodName === '$$eval') {
-            return state.getActivePage()?.evaluate(args[0], [context]);
-        }
-        if (methodName === '$eval') {
-            return state.getActivePage()?.evaluate(args[0], context);
-        }
-        return await (context as strDict)[methodName](...args);
-    }
-}
-
-async function determineContextAndSelector<T>(
-    state: PlaywrightState,
-    selector: string,
-    strictMode: boolean,
-): Promise<{ elementSelector: string | undefined; context: ElementHandle | Frame | Page }> {
-    const page = state.getActivePage();
-    exists(page, `Tried to do playwright action, but no open page.`);
-    if (isFramePiercingSelector(selector)) {
-        let selectors = splitFrameAndElementSelector(selector);
-        let frame = await findFrame(page, selectors.frameSelector, strictMode);
-        while (isFramePiercingSelector(selectors.elementSelector)) {
-            selectors = splitFrameAndElementSelector(selectors.elementSelector);
-            frame = await findFrame(frame, selectors.frameSelector, strictMode);
-        }
-        return { elementSelector: selectors.elementSelector, context: frame };
-    } else if (isElementHandleSelector(selector)) {
-        const { elementHandleId, subSelector } = splitElementHandleAndElementSelector(selector);
-        const elem = state.getElement(elementHandleId);
-        if (subSelector) return { elementSelector: subSelector, context: elem };
-        else return { elementSelector: undefined, context: elem };
-    } else {
-        return { elementSelector: selector, context: page };
-    }
-}
-
-export async function determineElement(
-    state: PlaywrightState,
-    selector: string,
-    strictMode: boolean,
-): Promise<ElementHandle | null> {
-    const page = state.getActivePage();
-    exists(page, `Tried to do playwright action, but no open page.`);
-    if (isFramePiercingSelector(selector)) {
-        let selectors = splitFrameAndElementSelector(selector);
-        let frame = await findFrame(page, selectors.frameSelector, strictMode);
-        while (isFramePiercingSelector(selectors.elementSelector)) {
-            selectors = splitFrameAndElementSelector(selectors.elementSelector);
-            frame = await findFrame(frame, selectors.frameSelector, strictMode);
-        }
-        return await frame.$(selectors.elementSelector, { strict: strictMode });
-    } else if (isElementHandleSelector(selector)) {
-        const { elementHandleId, subSelector } = splitElementHandleAndElementSelector(selector);
-        const elem = state.getElement(elementHandleId);
-        if (subSelector) {
-            return await elem.$(subSelector);
-        } else return elem;
-    } else {
-        return await page.$(selector, { strict: strictMode });
-    }
 }
 
 function isFramePiercingSelector(selector: string) {
@@ -177,7 +181,7 @@ function splitElementHandleAndElementSelector<T>(selector: string): { elementHan
         logger.info(`Split element= selector into parts: ${JSON.stringify(splitted)}`);
         return splitted;
     } else if (parts[1]) {
-        logger.info(`element= selector parsed without children`);
+        logger.info(`element=${parts[1]} selector parsed without children`);
         return {
             elementHandleId: parts[1],
             subSelector: '',
@@ -187,6 +191,7 @@ function splitElementHandleAndElementSelector<T>(selector: string): { elementHan
 }
 
 async function findFrame<T>(parent: Page | Frame, frameSelector: string, strictMode: boolean): Promise<Frame> {
+    logger.info(`Find frame with ${frameSelector} and strict mode ${strictMode}`);
     const contentFrame = await (await parent.$(frameSelector, { strict: strictMode }))?.contentFrame();
     exists(contentFrame, `Could not find frame with selector ${frameSelector}`);
     return contentFrame;
