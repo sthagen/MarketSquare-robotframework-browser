@@ -8,6 +8,9 @@ const port = parseInt(process.argv[2]) || 7272;
 
 app.set('etag', false);
 
+app.get('/favicon.ico', (req, res) => res.status(204).send());
+app.get('/dist/favicon.ico', (req, res) => res.status(204).send());
+
 app.head('/api/get/json', (req, res) => {
     res.header('Content-Type', 'application/json');
     res.send();
@@ -69,7 +72,7 @@ app.get('/redirector2.html', (req, res) => {
 app.post('/posted.html', (req, res) => {
     setTimeout(() => {
         res.send('<html lang="en"><head><title>Posted</title></head><body>Posted HELLO!!</body></html>');
-    }, 100);
+    }, 500);
 });
 
 app.get('/api/get/bad_binary', (req, res) => {
@@ -82,7 +85,7 @@ app.use(express.static(path.join(__dirname, '..')));
 app.use(express.static(path.join(__dirname, '..', 'static')));
 
 // Path debugging helper
-app.get('*', (req, res) => {
+/* app.get('*', (req, res) => {
     const fullPath = path.join(__dirname, req.path);
     const dir = fs.opendirSync(fullPath);
     let entity;
@@ -97,5 +100,6 @@ app.get('*', (req, res) => {
     dir.closeSync();
     res.send(listing);
 });
+*/
 
 app.listen(port, () => console.log(`Succesfully started server on http://localhost:${port}`));

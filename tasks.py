@@ -84,7 +84,7 @@ def deps(c):
     c.run("pip install -r Browser/dev-requirements.txt")
     if os.environ.get("CI"):
         shutil.rmtree("node_modules")
-    c.run("yarn", env={"PLAYWRIGHT_BROWSERS_PATH": "0"})
+    c.run("npm install", env={"PLAYWRIGHT_BROWSERS_PATH": "0"})
 
 
 @task
@@ -160,7 +160,7 @@ def _node_protobuf_gen(c):
         ROOT_DIR / "node_modules" / ".bin" / f"protoc-gen-ts{plugin_suffix}"
     )
     c.run(
-        f"yarn run grpc_tools_node_protoc \
+        f"npm run grpc_tools_node_protoc -- \
 		--js_out=import_style=commonjs,binary:{node_protobuf_dir} \
 		--grpc_out=grpc_js:{node_protobuf_dir} \
 		--plugin=protoc-gen-grpc={protoc_plugin} \
@@ -168,7 +168,7 @@ def _node_protobuf_gen(c):
 		protobuf/*.proto"
     )
     c.run(
-        f"yarn run grpc_tools_node_protoc \
+        f"npm run grpc_tools_node_protoc -- \
 		--plugin=protoc-gen-ts={protoc_ts_plugin} \
 		--ts_out={node_protobuf_dir} \
 		-I ./protobuf \
@@ -181,7 +181,7 @@ def node_build(c):
     if _sources_changed(
         node_dir.glob("**/*.[tj]s"), node_timestamp_file
     ) or _sources_changed(node_dir.glob("**/*.tsx"), node_timestamp_file):
-        c.run("yarn build")
+        c.run("npm run build")
         node_timestamp_file.touch()
     else:
         print("no changes in .ts files, skipping node build")
@@ -202,7 +202,7 @@ def _sources_changed(source_files, timestamp_file):
 
 @task(build)
 def watch(c):
-    c.run("yarn watch")
+    c.run("npm run watch")
 
 
 @task
@@ -241,13 +241,14 @@ def clean_atest(c):
 
 
 @task(clean_atest)
-def atest(c, suite=None, include=None, zip=None):
+def atest(c, suite=None, include=None, zip=None, debug=False):
     """Runs Robot Framework acceptance tests.
 
     Args:
         suite: Select which suite to run.
         include: Select test by tag
         zip: Create zip file from output files.
+        debug: Use robotframework-debugger as test listener
     """
     args = [
         "--pythonpath",
@@ -257,6 +258,8 @@ def atest(c, suite=None, include=None, zip=None):
         args.extend(["--suite", suite])
     if include:
         args.extend(["--include", include])
+    if debug:
+        args.extend(["--listener", "Debugger"])
     os.mkdir(ATEST_OUTPUT)
     logfile = open(Path(ATEST_OUTPUT, "playwright-log.txt"), "w")
     os.environ["DEBUG"] = "pw:api"
@@ -502,7 +505,7 @@ def lint_python(c):
         (ROOT_DIR / "utest").glob("**/*.py")
     )
     if _sources_changed(all_py_sources, python_lint_timestamp_file):
-        c.run("mypy --config-file Browser/mypy.ini Browser/ utest/")
+        c.run("mypy --show-error-codes --config-file Browser/mypy.ini Browser/ utest/")
         c.run("black --config Browser/pyproject.toml Browser/")
         c.run("flake8 --config Browser/.flake8 Browser/ utest/")
         c.run("isort Browser/")
@@ -514,7 +517,7 @@ def lint_python(c):
 @task
 def lint_node(c):
     if _sources_changed(node_dir.glob("**/*.ts"), node_lint_timestamp_file):
-        c.run("yarn run lint")
+        c.run("npm run lint")
         node_lint_timestamp_file.touch()
     else:
         print("no changes in .ts files, skipping node lint")
@@ -564,9 +567,7 @@ def docker_base(c):
 
 @task
 def docker_builder(c):
-    c.run(
-        "DOCKER_BUILDKIT=1 docker build --tag rfbrowser --file docker/Dockerfile ."
-    )
+    c.run("DOCKER_BUILDKIT=1 docker build --tag rfbrowser --file docker/Dockerfile .")
 
 
 @task
@@ -620,8 +621,14 @@ def run_test_app(c):
 
 
 @task
-def docs(c):
-    """Generate library keyword documentation."""
+def docs(c, version=None):
+    """Generate library keyword documentation.
+
+    Args:
+        version: Creates keyword documentation with version
+        suffix in the name. Documentation is moved to docs/vesions
+        folder.
+    """
     output = ROOT_DIR / "docs" / "Browser.html"
     libdoc("Browser", str(output))
     with output.open("r") as file:
@@ -650,6 +657,11 @@ def docs(c):
     soup.head.append(script_data)
     with output.open("w") as file:
         file.write(str(soup))
+    if version is not None:
+        target = (
+            ROOT_DIR / "docs" / "versions" / f"Browser-{version.replace('v', '')}.html"
+        )
+        output.rename(target)
 
 
 @task
@@ -706,11 +718,8 @@ def release(c):
     c.run("python -m twine upload --repository pypi dist/*")
 
 
-@task(docs)
+@task()
 def version(c, version):
-    from Browser.version import __version__ as VERSION
-
-    os.rename("docs/Browser.html", f"docs/versions/Browser-{VERSION}.html")
     if not version:
         print("Give version with inv version <version>")
     py_version_file = ROOT_DIR / "Browser" / "version.py"

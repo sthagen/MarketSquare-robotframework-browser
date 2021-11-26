@@ -548,6 +548,25 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "pokaalinkanssayohon",
+      "name": "pokaalinkanssayohon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34340500?v=4",
+      "profile": "https://github.com/pokaalinkanssayohon",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "rsandbach",
+      "name": "Ryan Sandbach",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8907955?v=4",
+      "profile": "https://github.com/rsandbach",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

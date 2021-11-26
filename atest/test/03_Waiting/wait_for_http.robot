@@ -17,6 +17,19 @@ Wait For Request async
     Click    \#delayed_request
     Wait For    ${promise}
 
+Wait For Request url
+    Click    \#delayed_request
+    Wait For Request    matcher=${ROOT_URL}/api/get/json    timeout=1s
+
+Wait For Request regex
+    Click    \#delayed_request
+    Wait For Request    matcher=\\/\\/local\\w+\\:\\d+\\/api    timeout=1s
+
+Wait For Request predicate
+    Click    \#delayed_request
+    Wait For Request    matcher=request => request.url().endsWith('api/get/json') && request.method() === 'GET'
+    ...    timeout=1s
+
 Wait For Response synchronous
     Click    \#delayed_request
     Wait For Response    timeout=1s
@@ -28,6 +41,10 @@ Wait For Response synchronous with default timeout
 Wait For Response synchronous with regex matcher
     Click    \#delayed_request
     Wait For Response    matcher=\\/\\/local\\w+\\:\\d+\\/api
+
+Wait For Response synchronous with predicate
+    Click    \#delayed_request
+    Wait For Response    response => response.url().endsWith('json') && response.request().method() === 'GET'
 
 Wait For Response async
     ${promise} =    Promise To    Wait For Response    matcher=    timeout=3s
@@ -63,7 +80,7 @@ Wait For Navigation Fails With Wrong wait_until
 
 Wait For Navigation Works With wait_until
     ${old timeout} =    Set Browser Timeout    4s
-    FOR    ${wait_until}    IN    domcontentloaded    load    networkidle
+    FOR    ${wait_until}    IN    domcontentloaded    networkidle    load
         Go To    ${ROOT_URL}/redirector.html
         Wait for navigation    ${ROOT_URL}/posted.html    wait_until=${wait_until}
         Get Url    contains    posted

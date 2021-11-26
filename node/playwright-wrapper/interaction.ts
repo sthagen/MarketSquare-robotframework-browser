@@ -19,8 +19,8 @@ import { Request, Response } from './generated/playwright_pb';
 import { emptyWithLog, stringResponse } from './response-util';
 import { findLocator, invokeOnKeyboard, invokeOnMouse } from './playwright-invoke';
 
-import * as pino from 'pino';
-const logger = pino.default({ timestamp: pino.stdTimeFunctions.isoTime });
+import pino from 'pino';
+const logger = pino({ timestamp: pino.stdTimeFunctions.isoTime });
 
 export async function selectOption(
     request: Request.SelectElementSelector,
@@ -127,6 +127,7 @@ export async function checkCheckbox(request: Request.ElementSelector, state: Pla
     const selector = request.getSelector();
     const strictMode = request.getStrict();
     const locator = await findLocator(state, selector, strictMode, undefined, true);
+    await locator.waitFor({ state: 'attached' });
     await locator.check();
     return emptyWithLog(`Checked checkbox: ${selector}`);
 }
@@ -138,8 +139,21 @@ export async function uncheckCheckbox(
     const selector = request.getSelector();
     const strictMode = request.getStrict();
     const locator = await findLocator(state, selector, strictMode, undefined, true);
+    await locator.waitFor({ state: 'attached' });
     await locator.uncheck();
     return emptyWithLog(`Unchecked checkbox: ${selector}`);
+}
+
+export async function uploadFileBySelector(
+    request: Request.FileBySelector,
+    state: PlaywrightState,
+): Promise<Response.Empty> {
+    const selector = request.getSelector();
+    const strictMode = request.getStrict();
+    const path = request.getPath();
+    const locator = await findLocator(state, selector, strictMode, undefined, true);
+    await locator.setInputFiles(path);
+    return emptyWithLog('Succesfully uploaded file');
 }
 
 export async function uploadFile(request: Request.FilePath, page: Page): Promise<Response.Empty> {
