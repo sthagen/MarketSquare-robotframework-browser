@@ -70,7 +70,7 @@ to install the latest available release or use
 to install exactly this version. Alternatively you can download the source
 distribution from PyPI_ and install it manually.
 Browser library {version} was released on {date}. Browser supports
-Python 3.7+, Node 12/14 LTS and Robot Framework 4.0+. Library was
+Python 3.7+, Node 12/14/16 LTS and Robot Framework 4.0+. Library was
 tested with Playwright REPLACE_PW_VERSION
 
 .. _Robot Framework: http://robotframework.org
@@ -496,6 +496,8 @@ def _run_pabot(extra_args=None):
     ]
     if platform.platform().startswith("Windows"):
         default_args.extend(["--exclude", "no-windows-support"])
+    if platform.platform().startswith("mac"):
+        default_args.extend(["--exclude", "no-mac-support"])
     default_args.append("atest/test")
     process = subprocess.Popen(
         pabot_args + (extra_args or []) + default_args, env=os.environ
