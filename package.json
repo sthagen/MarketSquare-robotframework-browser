@@ -1,6 +1,6 @@
 {
   "name": "robotframework-playwright",
-  "version": "12.0.0",
+  "version": "12.0.1",
   "main": "index.ts",
   "author": "Mikko Korpela <mikko.korpela@gmail.com>",
   "license": "Apache-2.0",
@@ -39,7 +39,7 @@
     "@medv/finder": "^2.1.0",
     "google-protobuf": "3.19.3",
     "pino": "^7.8.0",
-    "playwright": "^1.18.1",
+    "playwright": "^1.19.1",
     "uuid": "^8.3.2"
   },
   "scripts": {
