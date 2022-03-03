@@ -327,10 +327,7 @@ class Interaction(LibraryComponent):
         | `Click`    \\#clickWithOptions    delay=100ms    clickCount=2
 
         """
-        if self.library.presenter_mode:
-            self.hover(selector)
-            self.library.highlight_elements(selector, duration=timedelta(seconds=2))
-            sleep(2)
+        self._presenter_mode(selector, self.strict_mode)
         with self.playwright.grpc_channel() as stub:
             options = {
                 "button": button.name,
@@ -671,16 +668,26 @@ class Interaction(LibraryComponent):
     def _fill_text(
         self, selector: str, txt: str, log_response: bool = True, strict: bool = True
     ):
-        if self.library.presenter_mode:
-            self.hover(selector, strict)
-            self.library.highlight_elements(selector, duration=timedelta(seconds=2))
-            sleep(2)
+        self._presenter_mode(selector, strict)
         with self.playwright.grpc_channel() as stub:
             response = stub.FillText(
                 Request().FillText(selector=selector, text=txt, strict=strict)
             )
             if log_response:
                 logger.debug(response.log)
+
+    def _presenter_mode(self, selector, strict):
+        if self.library.presenter_mode:
+            mode = self.get_presenter_mode
+            self.hover(selector, strict)
+            self.library.highlight_elements(
+                selector,
+                duration=mode["duration"],
+                width=mode["width"],
+                style=mode["style"],
+                color=mode["color"],
+            )
+            sleep(mode["duration"].seconds)
 
     def _type_text(
         self,
@@ -691,10 +698,7 @@ class Interaction(LibraryComponent):
         log_response: bool = True,
         strict: bool = True,
     ):
-        if self.library.presenter_mode:
-            self.hover(selector, strict)
-            self.library.highlight_elements(selector, duration=timedelta(seconds=2))
-            sleep(2)
+        self._presenter_mode(selector, strict)
         with self.playwright.grpc_channel() as stub:
             delay_ms = self.get_timeout(delay)
             response = stub.TypeText(
@@ -871,14 +875,20 @@ class Interaction(LibraryComponent):
 
     @keyword(tags=("Setter", "PageContent"))
     def drag_and_drop_by_coordinates(
-        self, from_x: float, from_y: float, to_x: float, to_y: float, steps: int = 1
+        self,
+        from_x: float,
+        from_y: float,
+        to_x: float,
+        to_y: float,
+        steps: int = 1,
+        drop: bool = True,
     ):
         """Executes a Drag&Drop operation from a coordinate to another coordinate.
 
         First it moves the mouse to the start-point,
         then presses the left mouse button,
         then moves to the end-point in specified number of steps,
-        then releases the mouse button.
+        then releases the mouse button depending on the drop argument.
 
         Start- and end-point are defined by ``x`` and ``y`` coordinates relative to
         the top left corner of the pages viewport.
@@ -889,6 +899,9 @@ class Interaction(LibraryComponent):
 
         ``steps`` defines how many intermediate mouse move events are sent.
 
+        ``drop`` defines whether the operation ends with a dropped mouse.
+        Defaults to true.
+
         Example:
         | `Drag And Drop By Coordinates`
         | ...    from_x=30    from_y=30
@@ -896,7 +909,8 @@ class Interaction(LibraryComponent):
         """
         self.mouse_button(MouseButtonAction.down, x=from_x, y=from_y)
         self.mouse_move(x=to_x, y=to_y, steps=steps)
-        self.mouse_button(MouseButtonAction.up)
+        if drop:
+            self.mouse_button(MouseButtonAction.up)
 
     @staticmethod
     def _center_of_boundingbox(boundingbox: BoundingBox) -> Coordinates:
