@@ -18,6 +18,7 @@ import shutil
 import string
 import sys
 import time
+import types
 from concurrent.futures._base import Future
 from datetime import timedelta
 from pathlib import Path
@@ -25,6 +26,7 @@ from typing import Dict, List, Optional, Set, Union
 
 from assertionengine import AssertionOperator, Formatter
 from overrides import overrides
+from robot.errors import DataError  # type: ignore
 from robot.libraries.BuiltIn import EXECUTION_CONTEXTS, BuiltIn  # type: ignore
 from robot.result.model import TestCase as TestCaseResult  # type: ignore
 from robot.running.arguments import PythonArgumentParser  # type: ignore
@@ -583,25 +585,31 @@ class Browser(DynamicCore):
     can be also translated to modules that can be used from Node.js. For example TypeScript, PureScript and
     ClojureScript just to mention few.
 
-    | async function myGoToKeyword(page, args, logger, playwright) {
+    | async function myGoToKeyword(url, args, page, logger, playwright) {
     |   logger(args.toString())
     |   playwright.coolNewFeature()
-    |   return await page.goto(args[0]);
+    |   return await page.goto(url);
     | }
+
+    Functions can contain any number of arguments and arguments may have default values.
+
+    There are some reserved arguments that are not accessible from Robot Framework side.
+    They are injected to the function if they are in the arguments:
 
     ``page``: [https://playwright.dev/docs/api/class-page|the playwright Page object].
 
-    ``args``: list of strings from Robot Framework keyword call.
+    ``args``: the rest of values from Robot Framework keyword call ``*args``.
 
-    !! A BIT UNSTABLE AND SUBJECT TO API CHANGES !!
     ``logger``: callback function that takes strings as arguments and writes them to robot log. Can be called multiple times.
 
     ``playwright``: playwright module (* from 'playwright'). Useful for integrating with Playwright features that Browser library doesn't support with it's own keywords. [https://playwright.dev/docs/api/class-playwright| API docs]
 
+    also argument name ``self`` can not be used.
+
     == Example module.js ==
 
-    | async function myGoToKeyword(page, args) {
-    |   await page.goto(args[0]);
+    | async function myGoToKeyword(pageUrl, page) {
+    |   await page.goto(pageUrl);
     |   return await page.title();
     | }
     | exports.__esModule = true;
@@ -622,7 +630,7 @@ class Browser(DynamicCore):
 
     == Example module keyword for custom selector registering ==
 
-    | async function registerMySelector(page, args, log, playwright) {
+    | async function registerMySelector(playwright) {
     | playwright.selectors.register("myselector", () => ({
     |    // Returns the first element matching given selector in the root's subtree.
     |    query(root, selector) {
@@ -772,26 +780,69 @@ class Browser(DynamicCore):
             response = stub.InitializeExtension(
                 Request().FilePath(path=os.path.abspath(jsextension))
             )
-            for name, doc in zip(response.keywords, response.keywordDocumentations):
-                setattr(component, name, self._jskeyword_call(name, doc))
+            for name, args, doc in zip(
+                response.keywords,
+                response.keywordArguments,
+                response.keywordDocumentations,
+            ):
+                self._jskeyword_call(component, name, args, doc)
         return component
 
-    def _jskeyword_call(self, name: str, doc: str):
-        @keyword
-        def func(*args):
-            with self.playwright.grpc_channel() as stub:
-                responses = stub.CallExtensionKeyword(
-                    Request().KeywordCall(name=name, arguments=args)
-                )
-                for response in responses:
-                    logger.info(response.log)
-                if response.json == "":
-                    return
-                return json.loads(response.json)
-
-        func.__doc__ = doc
-
-        return func
+    def _jskeyword_call(
+        self,
+        component: LibraryComponent,
+        name: str,
+        argument_names_and_default_values: str,
+        doc: str,
+    ):
+        argument_names_and_vals = [
+            [a.strip() for a in arg.split("=")]
+            for arg in (argument_names_and_default_values or "").split(",")
+            if arg
+        ]
+        argument_names_and_default_values_texts = []
+        arg_set_texts = []
+        for item in argument_names_and_vals:
+            arg_name = item[0]
+            if arg_name in ["logger", "playwright", "page"]:
+                arg_set_texts.append(f'("{arg_name}", "RESERVED")')
+            else:
+                arg_set_texts.append(f'("{arg_name}", {arg_name})')
+                if item[0] == "args":
+                    argument_names_and_default_values_texts.append("*args")
+                elif len(item) > 1:
+                    argument_names_and_default_values_texts.append(
+                        f"{arg_name}={item[1]}"
+                    )
+                else:
+                    argument_names_and_default_values_texts.append(f"{arg_name}")
+        text = f"""
+@keyword
+def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
+    \"\"\"{doc}\"\"\"
+    _args_browser_internal = dict()
+    _args_browser_internal["arguments"] = [{", ".join(arg_set_texts)}]
+    with self.playwright.grpc_channel() as stub:
+        responses = stub.CallExtensionKeyword(
+            Request().KeywordCall(name="{name}", arguments=json.dumps(_args_browser_internal))
+        )
+        for response in responses:
+            logger.info(response.log)
+        if response.json == "":
+            return
+        return json.loads(response.json)
+"""
+        try:
+            exec(
+                text,
+                {**globals(), "keyword": keyword, "json": json},
+                component.__dict__,
+            )
+            setattr(
+                component, name, types.MethodType(component.__dict__[name], component)
+            )
+        except SyntaxError as e:
+            raise DataError(f"{e.msg} in {name}")
 
     @property
     def outputdir(self) -> str:
