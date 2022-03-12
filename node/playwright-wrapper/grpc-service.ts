@@ -29,6 +29,7 @@ import { ServerUnaryCall, ServerWritableStream, sendUnaryData } from '@grpc/grpc
 import { class_async_logger } from './keyword-decorators';
 import { emptyWithLog, errorResponse, stringResponse } from './response-util';
 import { pino } from 'pino';
+import { scrollToElement } from './interaction';
 const logger = pino({ timestamp: pino.stdTimeFunctions.isoTime });
 
 @class_async_logger
@@ -311,6 +312,9 @@ export class PlaywrightServer implements IPlaywrightServer {
     getElementAttribute = this.wrapping(getters.getElementAttribute);
     getElementStates = this.wrapping(getters.getElementStates);
     getStyle = this.wrapping(getters.getStyle);
+    getTableCellIndex = this.wrapping(getters.getTableCellIndex);
+    getTableRowIndex = this.wrapping(getters.getTableRowIndex);
+    scrollToElement = this.wrapping(interaction.scrollToElement);
 
     async getViewportSize(
         call: ServerUnaryCall<Request.Empty, Response.Json>,
