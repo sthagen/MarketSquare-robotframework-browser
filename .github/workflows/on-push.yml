@@ -38,15 +38,15 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.9"
             node-version: 16.x
-            shard: 3
+            shard: 4
           - os: windows-latest
             python-version: "3.8"
             node-version: 12.x
-            shard: 3
-          - os: ubuntu-latest
+            shard: 4
+          - os: windows-latest
             python-version: "3.8"
             node-version: 16.x
-            shard: 2
+            shard: 3
           - os: ubuntu-latest
             python-version: "3.9"
             node-version: 12.x
@@ -54,15 +54,23 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.10"
             node-version: 12.x
-            shard: 1
+            shard: 3
+          - os: ubuntu-latest
+            python-version: "3.10"
+            node-version: 14.x
+            shard: 4
           - os: ubuntu-latest
             python-version: "3.8"
             node-version: 14.x
             shard: 2
           - os: ubuntu-latest
-            python-version: "3.8"
+            python-version: "3.10"
             node-version: 16.x
             shard: 1
+          - os: ubuntu-latest
+            python-version: "3.9"
+            node-version: 16.x
+            shard: 3
           - os: macos-latest
             python-version: "3.9"
             node-version: 16.x
@@ -75,6 +83,10 @@ jobs:
             python-version: "3.9"
             node-version: 16.x
             shard: 3
+          - os: macos-latest
+            python-version: "3.9"
+            node-version: 16.x
+            shard: 4
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js
@@ -128,15 +140,15 @@ jobs:
     - name: Run Robot Framework tests on linux
       if: matrix.os == 'ubuntu-latest'
       run: |
-        xvfb-run --auto-servernum inv atest --shard ${{ matrix.shard }}/3 --smoke -z true
+        xvfb-run --auto-servernum inv atest --shard ${{ matrix.shard }}/4 -z true
     - name: Run Robot Framework tests on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        inv atest --smoke --shard ${{ matrix.shard }}/3 -z true
+        inv atest --shard ${{ matrix.shard }}/4 -z true
     - name: Run Robot Framework tests on macOS
       if: matrix.os == 'macos-latest'
       run: |
-        inv atest --smoke --shard ${{ matrix.shard }}/3 -z true
+        inv atest --shard ${{ matrix.shard }}/4 -z true
     - name: Create Distributable Package
       run: |
         inv docs
@@ -205,7 +217,7 @@ jobs:
           dir zip_results/demoapp
           tar -xf zip_results/demoapp/demo-app-win32.zip
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -213,6 +225,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
       - name: Install Robot Framework Browser on unix-like
         run: |
           pip install ./robotframework_browser-*-py3-none-any.whl
@@ -233,13 +246,13 @@ jobs:
           rm -rf Browser
           export DISPLAY=:99.0
           Xvfb -ac :99 -screen 0 1280x1024x16 > /dev/null 2>&1 &
-          xvfb-run --auto-servernum invoke atest-robot
+          xvfb-run --auto-servernum invoke atest-robot --smoke
       - name: Run Robot Framework tests on windows or macOS
         if: ${{ matrix.os != 'ubuntu-latest' }}
         run: |
           echo ${{ matrix.os }}
           Remove-Item -Path .\Browser -Force -Recurse
-          invoke atest-robot
+          invoke atest-robot --smoke
       - name: Artifacts download for flaky test analysis
         if: ${{ failure() }}
         # flaky-tests-detection here because it is huge and not needed for the test-install
