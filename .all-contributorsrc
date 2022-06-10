@@ -761,6 +761,24 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "nizwiz",
+      "name": "nizwiz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19755352?v=4",
+      "profile": "https://github.com/nizwiz",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Reddriver",
+      "name": "Reddriver",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7867213?v=4",
+      "profile": "https://github.com/Reddriver",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
