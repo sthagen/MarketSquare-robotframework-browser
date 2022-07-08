@@ -140,7 +140,7 @@ def _rfbrowser_init(skip_browser_install: bool):
             os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
 
     process = Popen(
-        "npm ci --production",
+        "npm ci --production --parseable true --progress false",
         shell=True,
         cwd=INSTALLATION_DIR,
         stdout=PIPE,
@@ -150,7 +150,10 @@ def _rfbrowser_init(skip_browser_install: bool):
     while process.poll() is None:
         if process.stdout:
             output = process.stdout.readline().decode("UTF-8")
-            logging.info(output)
+            try:
+                logging.info(output)
+            except Exception as error:
+                logging.info(f"While writing log file, got error: {error}")
 
     if process.returncode != 0:
         raise RuntimeError(
