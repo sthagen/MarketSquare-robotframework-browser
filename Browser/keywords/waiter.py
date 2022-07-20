@@ -62,6 +62,8 @@ class Waiter(LibraryComponent):
         Example:
         | `Wait For Elements State`    //h1    visible    timeout=2 s
         | `Wait For Elements State`    //hi    focused    1s
+
+        [https://forum.robotframework.org/t/comments-for-wait-for-elements-state/4345|Comment >>]
         """
         timeout_as_str = self.millisecs_to_timestr(self.get_timeout(timeout))
         funct = {
@@ -165,6 +167,8 @@ class Waiter(LibraryComponent):
         | ${promise}      `Promise To`      `Wait For Function`    element => element.style.width=="100%"    selector=\\#progress_bar    timeout=4s
         | `Click`         \\#progress_bar
         | `Wait For`      ${promise}
+
+        [https://forum.robotframework.org/t//4346|Comment >>]
         """
         timeout_as_str = self.millisecs_to_timestr(self.get_timeout(timeout))
         end = float(

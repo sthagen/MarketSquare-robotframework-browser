@@ -95,6 +95,8 @@ class PlaywrightState(LibraryComponent):
         ``pause_on_failure`` Stop execution when failure detected and leave browser open. Defaults to True.
 
         ``bypassCSP`` Defaults to bypassing CSP and enabling custom script attach to the page.
+
+        [https://forum.robotframework.org/t/comments-for-open-browser/4310|Comment >>]
         """
         logger.warn(
             "Open Browser is for quick experimentation and debugging only. Use New Page for production."
@@ -122,6 +124,8 @@ class PlaywrightState(LibraryComponent):
         | `Close Browser`    CURRENT    # Close current browser
         | `Close Browser`               # Close current browser
         | `Close Browser`    ${id}      # Close browser matching id
+
+        [https://forum.robotframework.org/t//4239|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             if browser == "ALL":
@@ -155,6 +159,8 @@ class PlaywrightState(LibraryComponent):
         | `Close Context`    CURRENT    CURRENT    #  Closes current context and current browser
         | `Close Context`    ALL        CURRENT    #  Closes all context from current browser and current browser
         | `Close Context`    ALL        ALL        #  Closes all context from current browser and all browser
+
+        [https://forum.robotframework.org/t//4240|Comment >>]
         """
         for browser_instance in self._get_browser_instances(browser):
             if browser_instance["id"] == "NO BROWSER OPEN":
@@ -220,6 +226,8 @@ class PlaywrightState(LibraryComponent):
         | `Close Page`                                       # Closes current page, within the current context and browser
         | `Close Page`    CURRENT     CURRENT     CURRENT    # Closes current page, within the current context and browser
         | `Close Page`    ALL         ALL         ALL        # Closes all pages, within all contexts and browsers
+
+        [https://forum.robotframework.org/t//4241|Comment >>]
         """
         result = []
         with self.playwright.grpc_channel() as stub:
@@ -286,6 +294,8 @@ class PlaywrightState(LibraryComponent):
         ``wsEndpoint`` Address to connect to.
 
         ``browser`` Opens the specified browser. Defaults to chromium.
+
+        [https://forum.robotframework.org/t//4242|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.ConnectToBrowser(
@@ -343,7 +353,8 @@ class PlaywrightState(LibraryComponent):
         forcedColors: ForcedColors = ForcedColors.none,
         url: Optional[str] = None,
     ):
-        """Open a new [persistent context | https://playwright.dev/docs/api/class-browsertype#browser-type-launch-persistent-context].
+        """Open a new
+        [https://playwright.dev/docs/api/class-browsertype#browser-type-launch-persistent-context | persistent context].
 
         ``userDataDir`` Path to a User Data Directory, which stores browser session data like cookies and local storage. More details for Chromium and Firefox. Note that Chromium's user data directory is the parent directory of the "Profile Path" seen at chrome://version. Pass an empty string to use a temporary directory instead
 
@@ -352,7 +363,10 @@ class PlaywrightState(LibraryComponent):
         | ${launch_args}=  Set Variable  ["--disable-extensions-except=./ublock/uBlock0.chromium", "--load-extension=./ublock/uBlock0.chromium"]
         | `New Persistent Context  browser=chromium  headless=False  args=${launch_args}
 
-        Check `New Browser` or `New context` for the specific argument docs."""
+        Check `New Browser` or `New context` for the specific argument docs.
+
+        [https://forum.robotframework.org/t//4309|Comment >>]
+        """
 
         params = locals_to_params(locals())
         params = convert_typed_dict(self.new_context.__annotations__, params)
@@ -493,6 +507,8 @@ class PlaywrightState(LibraryComponent):
         ``channel`` Allows to operate against the stock Google Chrome and Microsoft Edge browsers.
         For more details see:
         [https://playwright.dev/docs/browsers/#google-chrome--microsoft-edge|Playwright documentation].
+
+        [https://forum.robotframework.org/t/comments-for-new-browser/4306|Comment >>]
         """
         params = locals_to_params(locals())
         params = convert_typed_dict(self.new_context.__annotations__, params)
@@ -705,6 +721,8 @@ class PlaywrightState(LibraryComponent):
         for a list of supported options.
 
         If there's no open Browser this keyword will open one. Does not create pages.
+
+        [https://forum.robotframework.org/t/comments-for-new-context/4307|Comment >>]
         """
         params = locals_to_params(locals())
         params = self._set_video_path(params)
@@ -812,6 +830,8 @@ class PlaywrightState(LibraryComponent):
         and `New Context` are executed with default values first.
 
         ``url`` If specified it will open the new page to the specified URL.
+
+        [https://forum.robotframework.org/t//4308|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.NewPage(
@@ -929,6 +949,8 @@ class PlaywrightState(LibraryComponent):
         |     "activeBrowser": true
         |   }
         | ]
+
+        [https://forum.robotframework.org/t//4259|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.GetBrowserCatalog(Request().Empty())
@@ -952,6 +974,8 @@ class PlaywrightState(LibraryComponent):
         See `Browser, Context and Page` for more information about Browser and related concepts.
 
         ``id`` Id of the browser to be changed to. Starting at 0.
+
+        [https://forum.robotframework.org/t//4334|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.SwitchBrowser(Request().Index(index=id))
@@ -976,6 +1000,8 @@ class PlaywrightState(LibraryComponent):
         | ${second_context} =    `New Context`
         | `New Page`             ${URL2}
         | `Switch Context`       ${first_context}    # Switches back to first context and page.
+
+        [https://forum.robotframework.org/t//4335|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             if browser.upper() == "ALL":
@@ -1015,6 +1041,8 @@ class PlaywrightState(LibraryComponent):
         Example:
         | `Click`           button#pops_up    # Open new page
         | ${previous} =    `Switch Page`      NEW
+
+        [https://forum.robotframework.org/t//4336|Comment >>]
         """
 
         def _all(text: str) -> bool:
@@ -1075,6 +1103,8 @@ class PlaywrightState(LibraryComponent):
         - ``ACTIVE`` / ``CURRENT`` Returns the id of the currently active browser as list.
 
         The ACTIVE browser is a synonym for the CURRENT Browser.
+
+        [https://forum.robotframework.org/t//4260|Comment >>]
         """
         if browser == SelectionType.ACTIVE:
             browser_item = self._get_active_browser_item(self.get_browser_catalog())
@@ -1105,6 +1135,8 @@ class PlaywrightState(LibraryComponent):
         - ``ACTIVE`` only context ids from the active browser shall be fetched.
 
         The ACTIVE context of the ACTIVE Browser is the ``Current`` Context.
+
+        [https://forum.robotframework.org/t//4264|Comment >>]
         """
         if browser == SelectionType.ACTIVE:
             browser_item = self._get_active_browser_item(self.get_browser_catalog())
@@ -1164,6 +1196,8 @@ class PlaywrightState(LibraryComponent):
         |     Log Many           These are all Page IDs    @{all_pages}
 
         The ACTIVE page of the ACTIVE context of the ACTIVE Browser is the ``Current`` Page.
+
+        [https://forum.robotframework.org/t//4274|Comment >>]
         """
         if browser == SelectionType.ACTIVE:
             browser_item = self._get_active_browser_item(self.get_browser_catalog())
@@ -1253,6 +1287,8 @@ class PlaywrightState(LibraryComponent):
         |     `New Page`    https://login.page.html
         |     #  Login is not needed because authentication is read from state file
         |     `Get Text`    id=header    ==    Something
+
+        [https://forum.robotframework.org/t//4318|Comment >>]
         """
         file = str(self.state_file / f"{str(uuid4())}.json")
         self.state_file.mkdir(parents=True, exist_ok=True)

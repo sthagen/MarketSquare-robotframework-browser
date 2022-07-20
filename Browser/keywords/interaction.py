@@ -78,6 +78,8 @@ class Interaction(LibraryComponent):
         Example
         | `Type Text`    input#username_field    user
         | `Type Text`    input#username_field    user    delay=10 ms    clear=No
+
+        [https://forum.robotframework.org/t//4339|Comment >>]
         """
         logger.info(f"Types the text '{txt}' in the given field.")
         self._type_text(
@@ -113,6 +115,8 @@ class Interaction(LibraryComponent):
 
         Example:
         | `Fill Text`    css=input#username_field    username
+
+        [https://forum.robotframework.org/t//4254|Comment >>]
         """
         logger.info(f"Fills the text '{txt}' in the given field.")
         self._fill_text(selector, txt, strict=self.strict_mode, force=force)
@@ -128,6 +132,8 @@ class Interaction(LibraryComponent):
 
         See `Type Text` for emulating typing text character by character.
         See `Fill Text` for direct filling of the full text at once.
+
+        [https://forum.robotframework.org/t//4237|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.ClearText(
@@ -174,6 +180,8 @@ class Interaction(LibraryComponent):
         | `Type Secret`    input#username_field    $username      # Keyword resolves ${username} variable value from Robot Framework variables
         | `Type Secret`    input#username_field    %username      # Keyword resolves $USERNAME/%USERNAME% variable value from environment variables
         | `Type Secret`    input#username_field    ${username}    # Robot Framework resolves the variable value, but secrect can leak to Robot framework output files.
+
+        [https://forum.robotframework.org/t//4338|Comment >>]
         """
         originals = self._get_original_values(locals())
         secret = self.resolve_secret(
@@ -242,6 +250,8 @@ class Interaction(LibraryComponent):
         Example:
         | `Fill Secret`    input#username_field    $username    # Keyword resolves variable value from Robot Framework variables
         | `Fill Secret`    input#username_field    %username    # Keyword resolves variable value from environment variables
+
+        [https://forum.robotframework.org/t//4253|Comment >>]
         """
         originals = self._get_original_values(locals())
         secret = self.resolve_secret(
@@ -280,6 +290,8 @@ class Interaction(LibraryComponent):
         Example:
         | # Keyword         Selector                    *Keys
         | `Press Keys`      //*[@id="username_field"]    h    e   l   o   ArrowLeft   l
+
+        [https://forum.robotframework.org/t//4311|Comment >>]
         """  # noqa
         with self.playwright.grpc_channel() as stub:
             response = stub.Press(
@@ -348,6 +360,7 @@ class Interaction(LibraryComponent):
         | `Click`    id=clickWithModifiers    left    1    None    None    None    False    False    Alt    Meta    Shift
         | `Click`    id=clickWithModifier    right    2    None    None    None    False    False    Shift
 
+        [https://forum.robotframework.org/t/comments-for-click/4238|Comment >>]
         """
         self.presenter_mode(selector, self.strict_mode)
         with self.playwright.grpc_channel() as stub:
@@ -390,6 +403,8 @@ class Interaction(LibraryComponent):
         | `Click`  ${selector}
         | ${selector2} =    `Record Selector`  Page header
         | `Get Text`  ${selector2}  ==  Expected text
+
+        [https://forum.robotframework.org/t//4315|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.RecordSelector(Request.Label(label=label or ""))
@@ -436,6 +451,8 @@ class Interaction(LibraryComponent):
         Example:
         | `Hover`    h1
         | `Hover`    h1    10   20    Alt
+
+        [https://forum.robotframework.org/t//4295|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             options: Dict[str, Any] = {"force": force}
@@ -464,6 +481,8 @@ class Interaction(LibraryComponent):
 
         If there's no element matching selector, the method waits until a
         matching element appears in the DOM. Timeouts after 10 seconds.
+
+        [https://forum.robotframework.org/t//4255|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.Focus(
@@ -498,6 +517,8 @@ class Interaction(LibraryComponent):
         ``behavior`` defines whether the scroll happens directly or it scrolls smoothly.
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
+
+        [https://forum.robotframework.org/t//4320|Comment >>]
         """
         scroll_size = self.library.get_scroll_size(selector)
         scroll_width = scroll_size["width"]
@@ -545,6 +566,8 @@ class Interaction(LibraryComponent):
         ``behavior`` defines whether the scroll happens directly or it scrolls smoothly.
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
+
+        [https://forum.robotframework.org/t//4319|Comment >>]
         """
         scroll_size = self.library.get_scroll_size(selector)
         scroll_width = scroll_size["width"]
@@ -574,7 +597,10 @@ class Interaction(LibraryComponent):
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
-        Does nothing if the element is already visible."""
+        Does nothing if the element is already visible.
+
+        [https://forum.robotframework.org/t//4321|Comment >>]
+        """
         with self.playwright.grpc_channel() as stub:
             response = stub.ScrollToElement(
                 Request().ElementSelector(selector=selector, strict=self.strict_mode)
@@ -593,6 +619,8 @@ class Interaction(LibraryComponent):
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
         Does nothing if the element is already checked/selected.
+
+        [https://forum.robotframework.org/t//4235|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.CheckCheckbox(
@@ -614,6 +642,8 @@ class Interaction(LibraryComponent):
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
         Does nothing if the element is not checked/selected.
+
+        [https://forum.robotframework.org/t//4340|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.UncheckCheckbox(
@@ -662,6 +692,8 @@ class Interaction(LibraryComponent):
         | ${selected} =    `Select Options By`    select[name=interests]    text     Males    Females
         | List Should Contain Value    ${selected}    Males
         | List Should Contain Value    ${selected}    Females
+
+        [https://forum.robotframework.org/t//4322|Comment >>]
         """
         matchers = ""
         if not values or len(values) == 1 and not values[0]:
@@ -696,6 +728,8 @@ class Interaction(LibraryComponent):
         See the `Finding elements` section for details about the selectors.
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
+
+        [https://forum.robotframework.org/t//4245|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.DeselectOption(
@@ -763,6 +797,8 @@ class Interaction(LibraryComponent):
         Example:
         | `Handle Future Dialogs`    action=accept
         | `Click`                    \\#alerts
+
+        [https://forum.robotframework.org/t//4293|Comment >>]
         """
 
         with self.playwright.grpc_channel() as stub:
@@ -800,6 +836,8 @@ class Interaction(LibraryComponent):
         | ${promise} =       Promise To    Wait For Alert    action=accept    text=Am an alert
         | Click              id=alerts
         | ${text} =          Wait For      ${promise}
+
+        [https://forum.robotframework.org/t//4343|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.WaitForAlert(
@@ -844,6 +882,8 @@ class Interaction(LibraryComponent):
         | `Mouse Button`              down                 # Press mouse button down
         | `Mouse Move Relative To`    "Obstacle"    500    # Drag mouse
         | `Mouse Button`              up                   # Release mouse button
+
+        [https://forum.robotframework.org/t//4303|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             if x and y:
@@ -896,6 +936,8 @@ class Interaction(LibraryComponent):
 
         Example
         | `Drag And Drop`    "Circle"    "Goal"
+
+        [https://forum.robotframework.org/t//4247|Comment >>]
         """
         from_bbox = self.library.get_boundingbox(selector_from)
         from_xy = self._center_of_boundingbox(from_bbox)
@@ -934,6 +976,8 @@ class Interaction(LibraryComponent):
         | `Drag And Drop By Coordinates`
         | ...    from_x=30    from_y=30
         | ...    to_x=10    to_y=10    steps=200
+
+        [https://forum.robotframework.org/t//4248|Comment >>]
         """
         self.mouse_button(MouseButtonAction.down, x=from_x, y=from_y)
         self.mouse_move(x=to_x, y=to_y, steps=steps)
@@ -969,6 +1013,8 @@ class Interaction(LibraryComponent):
 
         Example
         | `Drag And Drop Relative to`    "Circle"    -20    0     # Slides the element 20 pixel to the left
+
+        [https://forum.robotframework.org/t//4249|Comment >>]
         """
         from_bbox = self.library.get_boundingbox(selector_from)
         from_xy = self._center_of_boundingbox(from_bbox)
@@ -1004,6 +1050,8 @@ class Interaction(LibraryComponent):
 
         Example:
         | `Mouse Move Relative To`    id=indicator    -100
+
+        [https://forum.robotframework.org/t//4305|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             bbox = self.library.get_boundingbox(selector)
@@ -1035,6 +1083,8 @@ class Interaction(LibraryComponent):
 
         Example:
         | `Mouse Move`    400    400
+
+        [https://forum.robotframework.org/t//4304|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             body: MouseOptionsDict = {"x": x, "y": y, "options": {"steps": steps}}
@@ -1069,6 +1119,8 @@ class Interaction(LibraryComponent):
         | `Keyboard Key`    up       Shift
 
         Note: Capital letters don't need to be written by the help of Shift. You can type them in directly.
+
+        [https://forum.robotframework.org/t//4298|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.KeyboardKey(
@@ -1094,6 +1146,8 @@ class Interaction(LibraryComponent):
 
         Example:
         | `Keyboard Input`    insertText    0123456789
+
+        [https://forum.robotframework.org/t//4297|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             response = stub.KeyboardInput(
@@ -1111,6 +1165,8 @@ class Interaction(LibraryComponent):
 
         Example:
         | `Upload File By Selector`    //input[@type='file']    big_file.zip
+
+        [https://forum.robotframework.org/t//4341|Comment >>]
         """
         with self.playwright.grpc_channel() as stub:
             if not Path(path).is_file():

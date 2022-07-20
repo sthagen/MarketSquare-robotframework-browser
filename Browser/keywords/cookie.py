@@ -39,6 +39,8 @@ class Cookie(LibraryComponent):
         If ``return_type`` is ``string`` or ``str``, then keyword returns the cookie as a string in format:
         ``name1=value1; name2=value2; name3=value3``. The return value contains only ``name`` and ``value`` keys of the
         cookie.
+
+        [https://forum.robotframework.org/t//4266|Comment >>]
         """
         response, cookies = self._get_cookies()
         if not response.log:
@@ -127,6 +129,8 @@ class Cookie(LibraryComponent):
         | `Add Cookie`   foo   bar   domain=example.com                path=/foo/bar                     # Using domain and url arguments.
         | `Add Cookie`   foo   bar   http://address.com/path/to/site   expiry=2027-09-28 16:21:35        # Expiry as timestamp.
         | `Add Cookie`   foo   bar   http://address.com/path/to/site   expiry=1822137695                 # Expiry as epoch seconds.
+
+        [https://forum.robotframework.org/t//4233|Comment >>]
         """
         params = locals_to_params(locals())
         if expires:
@@ -149,14 +153,20 @@ class Cookie(LibraryComponent):
 
     @keyword(tags=("Setter", "BrowserControl"))
     def delete_all_cookies(self):
-        """Deletes all cookies from the currently active browser context."""
+        """Deletes all cookies from the currently active browser context.
+
+        [https://forum.robotframework.org/t//4244|Comment >>]
+        """
         with self.playwright.grpc_channel() as stub:
             response = stub.DeleteAllCookies(Request.Empty())
         logger.info(response.log)
 
     @keyword
     def eat_all_cookies(self):
-        """Eat all cookies for all easter."""
+        """Eat all cookies for all easter.
+
+        [https://forum.robotframework.org/t//4250|Comment >>]
+        """
         self.delete_all_cookies()
         logger.info(
             """
@@ -206,6 +216,8 @@ class Cookie(LibraryComponent):
         | ${cookie}=        `Get Cookie`              Foobar
         | Should Be Equal   ${cookie.value}           Tidii
         | Should Be Equal   ${cookie.expiry.year}     ${2020}
+
+        [https://forum.robotframework.org/t//4265|Comment >>]
         """
         _, cookies = self._get_cookies()
         for cookie_dict in cookies:
