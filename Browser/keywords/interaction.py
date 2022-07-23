@@ -285,7 +285,7 @@ class Interaction(LibraryComponent):
 
         See playwright's documentation for a more comprehensive list of
         supported input keys.
-        [https://playwright.dev/docs/api/class-page#pagepressselector-key-options | Playwright docs for press.]
+        [https://playwright.dev/docs/api/class-page#page-press | Playwright docs for press.]
 
         Example:
         | # Keyword         Selector                    *Keys
@@ -1168,12 +1168,15 @@ class Interaction(LibraryComponent):
 
         [https://forum.robotframework.org/t//4341|Comment >>]
         """
+        p = Path(path)
+        if not p.is_file():
+            raise ValueError(f"Nonexistent input file path '{p.resolve()}'")
         with self.playwright.grpc_channel() as stub:
-            if not Path(path).is_file():
-                raise ValueError("Nonexistent input file path")
             response = stub.UploadFileBySelector(
                 Request().FileBySelector(
-                    path=str(path), selector=selector, strict=self.library.strict_mode
+                    path=str(p.resolve()),
+                    selector=selector,
+                    strict=self.library.strict_mode,
                 )
             )
             logger.debug(response.log)
