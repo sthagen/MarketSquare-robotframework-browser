@@ -46,7 +46,7 @@ def convert_typed_dict(function_annotations: Dict, params: Dict) -> Dict:
             for req_key in arg_type.__required_keys__:  # type: ignore
                 if req_key.lower() not in lower_case_dict:
                     raise RuntimeError(
-                        f"`{lower_case_dict}` cannot be converted to {arg_type.__name__}."
+                        f"`{lower_case_dict}` cannot be converted to {arg_type.__name__} for argument '{arg_name}'."
                         f"\nThe required key '{req_key}' in not set in given value."
                         f"\nExpected types: {arg_type.__annotations__}"
                     )
@@ -207,7 +207,7 @@ class DownloadedFile(TypedDict):
 
 
 class NewPageDetails(TypedDict):
-    """Return value of New Page keyword.
+    """Return value of `New Page` keyword.
 
     ``page_id`` is the UUID of the opened page.
     ``video_path`` path to the video or empty string if video is not created.
@@ -244,10 +244,24 @@ class SelectionType(Enum):
 
     ``ALL`` / ``ANY`` defines to return ids of all instances."""
 
-    ACTIVE = auto()
-    CURRENT = ACTIVE
-    ALL = auto()
+    CURRENT = "CURRENT"
+    ACTIVE = CURRENT
+    ALL = "ALL"
     ANY = ALL
+
+    @classmethod
+    def create(cls, value: Union[str, "SelectionType"]):
+        """Returns the enum value from the given string or not."""
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, str):
+            try:
+                return cls[value.upper()]
+            except KeyError:
+                return value
+
+    def __str__(self):
+        return self.value
 
 
 class DialogAction(Enum):
@@ -555,3 +569,62 @@ class ForcedColors(Enum):
 
     active = auto()
     none = auto()
+
+
+class ConditionInputs(Enum):
+    """
+    Following values are allowed and represent the assertion keywords to use:
+    | =Value= | =Keyword= |
+    | ``Attribute`` | `Get Attribute` |
+    | ``Attribute Names`` | `Get Attribute Names` |
+    | ``BoundingBox`` | `Get BoundingBox` |
+    | ``Browser Catalog`` | `Get Browser Catalog` |
+    | ``Checkbox State`` | `Get Checkbox State` |
+    | ``Classes`` | `Get Classes` |
+    | ``Client Size`` | `Get Client Size` |
+    | ``Element Count`` | `Get Element Count` |
+    | ``Element States`` | `Get Element States` |
+    | ``Page Source`` | `Get Page Source` |
+    | ``Property`` | `Get Property` |
+    | ``Scroll Position`` | `Get Scroll Position` |
+    | ``Scroll Size`` | `Get Scroll Size` |
+    | ``Select Options`` | `Get Select Options` |
+    | ``Selected Options`` | `Get Selected Options` |
+    | ``Style`` | `Get Style` |
+    | ``Table Cell Index`` | `Get Table Cell Index` |
+    | ``Table Row Index`` | `Get Table Row Index` |
+    | ``Text`` | `Get Text` |
+    | ``Title`` | `Get Title` |
+    | ``Url`` | `Get Url` |
+    | ``Viewport Size`` | `Get Viewport Size` |
+    """
+
+    attribute = "get_attribute"
+    attribute_names = "get_attribute_names"
+    bounding_box = "get_bounding_box"
+    browser_catalog = "get_browser_catalog"
+    checkbox_state = "get_checkbox_state"
+    classes = "get_classes"
+    client_size = "get_client_size"
+    element_count = "get_element_count"
+    element_states = "get_element_states"
+    page_source = "get_page_source"
+    property = "get_property"
+    scroll_position = "get_scroll_position"
+    scroll_size = "get_scroll_size"
+    select_options = "get_select_options"
+    selected_options = "get_selected_options"
+    style = "get_style"
+    table_cell_index = "get_table_cell_index"
+    table_row_index = "get_table_row_index"
+    text = "get_text"
+    title = "get_title"
+    url = "get_url"
+    viewport_size = "get_viewport_size"
+
+
+class Scope(Enum):
+    Global = auto()
+    Suite = auto()
+    Test = auto()
+    Task = Test

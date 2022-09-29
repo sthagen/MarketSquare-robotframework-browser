@@ -84,6 +84,7 @@ Evaluate Multiline JavaScript Strict Mode Error
     ...    arg=Hello World
 
 Evaluate Multiline JavaScript On Page
+    [Tags]    no-iframe
     ${arg} =    Create Dictionary    selector=input#login_button    text=-APPENDIX
     ${texts} =    Evaluate JavaScript    ${NONE}
     ...    (arg) => {
@@ -140,6 +141,11 @@ Highlight Element On Page
     Set Strict Mode    True
     Get Element Count    .robotframework-browser-highlight    ==    5
     Sleep    1500ms
+    Get Element Count    .robotframework-browser-highlight    ==    0
+
+Highlight Element With Invalid Selector
+    Highlight Elements    %inva$id[Unparse//elem    duration=200ms
+    Sleep    100ms
     Get Element Count    .robotframework-browser-highlight    ==    0
 
 Highlight Element With Strict

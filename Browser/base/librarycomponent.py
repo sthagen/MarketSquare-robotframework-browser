@@ -16,11 +16,11 @@ from concurrent.futures._base import Future
 from copy import copy, deepcopy
 from datetime import timedelta
 from time import sleep
-from typing import TYPE_CHECKING, Any, Set, Union
+from typing import TYPE_CHECKING, Any, Optional, Set, Union
 
 from robot.utils import timestr_to_secs  # type: ignore
 
-from ..utils import get_variable_value, logger
+from ..utils import SettingsStack, get_variable_value, logger
 from ..utils.data_types import DelayedKeyword, HighLightElement
 
 if TYPE_CHECKING:
@@ -43,19 +43,54 @@ class LibraryComponent:
 
     @property
     def timeout(self) -> float:
-        return self.library.timeout
+        return self.library.timeout_stack.get()
 
-    @timeout.setter
-    def timeout(self, value: float):
-        self.library.timeout = value
+    @property
+    def timeout_stack(self) -> SettingsStack:
+        return self.library.timeout_stack
+
+    @timeout_stack.setter
+    def timeout_stack(self, stack: SettingsStack):
+        self.library.timeout_stack = stack
 
     @property
     def retry_assertions_for(self) -> float:
-        return self.library.retry_assertions_for
+        return self.library.retry_assertions_for_stack.get()
 
-    @retry_assertions_for.setter
-    def retry_assertions_for(self, value: float):
-        self.library.retry_assertions_for = value
+    @property
+    def retry_assertions_for_stack(self) -> SettingsStack:
+        return self.library.retry_assertions_for_stack
+
+    @retry_assertions_for_stack.setter
+    def retry_assertions_for_stack(self, stack: SettingsStack):
+        self.library.retry_assertions_for_stack = stack
+
+    @property
+    def selector_prefix(self) -> str:
+        return self.library.selector_prefix_stack.get()
+
+    @property
+    def selector_prefix_stack(self) -> SettingsStack:
+        return self.library.selector_prefix_stack
+
+    @selector_prefix_stack.setter
+    def selector_prefix_stack(self, stack: SettingsStack):
+        self.library.selector_prefix_stack = stack
+
+    def resolve_selector(self, selector: Optional[str]) -> str:
+        if not selector:
+            return ""
+        if selector.startswith("!prefix "):
+            logger.trace("Using selector prefix, but muting Prefix.")
+            return selector[8:]
+        if selector.startswith("element=") or not self.selector_prefix:
+            return selector
+        if selector.startswith(f"{self.selector_prefix} "):
+            return selector
+        logger.debug(
+            f"Using selector prefix. Selector: '{self.selector_prefix} {selector}'"
+        )
+        return f"{self.selector_prefix} {selector}"
 
     @property
     def unresolved_promises(self):
@@ -138,11 +173,15 @@ class LibraryComponent:
 
     @property
     def strict_mode(self) -> bool:
-        return self.library.strict_mode
+        return self.library.strict_mode_stack.get()
 
-    @strict_mode.setter
-    def strict_mode(self, mode: bool):
-        self.library.strict_mode = mode
+    @property
+    def strict_mode_stack(self) -> SettingsStack:
+        return self.library.strict_mode_stack
+
+    @strict_mode_stack.setter
+    def strict_mode_stack(self, stack: SettingsStack):
+        self.library.strict_mode_stack = stack
 
     def parse_run_on_failure_keyword(
         self, keyword_name: Union[str, None]
@@ -165,6 +204,7 @@ class LibraryComponent:
         return {"duration": duration, "width": width, "style": style, "color": color}
 
     def presenter_mode(self, selector, strict):
+        selector = self.resolve_selector(selector)
         if self.library.presenter_mode:
             mode = self.get_presenter_mode
             try:
@@ -182,3 +222,12 @@ class LibraryComponent:
             else:
                 sleep(mode["duration"].seconds)
         return selector
+
+    def exec_scroll_function(self, function: str, selector: Optional[str] = None):
+        if selector:
+            element_selector = "(element) => element"
+        else:
+            element_selector = "document.scrollingElement"
+        return self.library.execute_javascript(
+            f"{element_selector}.{function}", selector
+        )

@@ -194,7 +194,7 @@ export async function recordSelector(
         return myselectors;
     });
     page.exposeFunction('highlightPWSelector', (selector: string) => {
-        highlightAll(selector, 1000, '3px', 'dotted', 'silver', false, state);
+        highlightAll(selector, 1000, '3px', 'dotted', 'blue', false, state);
     });
     const result = await recordSelectorIterator(request.getLabel(), page.mainFrame());
     return jsResponse(result, 'Selector recorded.');
@@ -297,7 +297,14 @@ async function highlightAll(
     state: PlaywrightState,
 ): Promise<number> {
     const locator = await findLocator(state, selector, strictMode, undefined, false);
-    const count = locator.count();
+    let count: number;
+    try {
+        count = await locator.count();
+    } catch (e) {
+        logger.info(e);
+        return 0;
+    }
+    logger.info(`Locator count is ${count}`);
     await locator.evaluateAll(
         (elements: Array<Element>, options: any) => {
             elements.forEach((e: Element) => {

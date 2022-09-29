@@ -32,7 +32,7 @@ from robot.utils import DotDict  # type: ignore
 from ..assertion_engine import with_assertion_polling
 from ..base import LibraryComponent
 from ..generated.playwright_pb2 import Request
-from ..utils import exec_scroll_function, keyword, logger
+from ..utils import keyword, logger
 from ..utils.data_types import (
     AreaFields,
     BoundingBoxFields,
@@ -53,16 +53,13 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Returns the current URL.
 
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         Optionally asserts that it matches the specified assertion. See `Assertions` for further details
         for the assertion arguments. By default assertion is not done.
-
-        ``message`` overrides the default error message.
 
         [https://forum.robotframework.org/t//4287|Comment >>]
         """
@@ -86,11 +83,10 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Returns page model state object as a dictionary.
 
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         This must be given on the page to ``window.__SET_RFBROWSER_STATE__``
 
@@ -124,11 +120,10 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Gets pages HTML source as a string.
 
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         Optionally does a string assertion. See `Assertions` for further details for
         the assertion arguments. By default assertion is not done.
@@ -159,16 +154,13 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Returns the title of the current page.
 
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         Optionally asserts that title matches the specified assertion. See `Assertions`
         for further details for the assertion arguments. By default assertion is not done.
-
-        ``message`` overrides the default error message.
 
         [https://forum.robotframework.org/t//4286|Comment >>]
         """
@@ -197,27 +189,25 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Returns text attribute of the element found by ``selector``.
 
-        Keyword can also return `input` or `textarea` value property text.
-
+               Keyword can also return `input` or `textarea` value property text.
         See the `Finding elements` section for details about the selectors.
 
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
+               | =Arguments= | =Description= |
+               | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+               | ``assertion_expected`` | Expected value for the state |
+               | ``message`` | overrides the default error message for assertion. |
 
-        ``expected_value`` Expected value for the state
+               Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
-        ``message`` overrides the default error message for assertion.
+               Optionally asserts that the text matches the specified assertion. See `Assertions`
+               for further details for the assertion arguments. By default, assertion is not done.
 
-        Keyword uses strict mode, see `Finding elements` for more details about strict mode.
+               Example:
+               | ${text} =    `Get Text`    id=important                            # Returns element text without assertion.
+               | ${text} =    `Get Text`    id=important    ==    Important text    # Returns element text with assertion.
+               | ${text} =    `Get Text`    //input         ==    root              # Returns input element text with assertion.
 
-        Optionally asserts that the text matches the specified assertion. See `Assertions`
-        for further details for the assertion arguments. By default, assertion is not done.
-
-        Example:
-        | ${text} =    `Get Text`    id=important                            # Returns element text without assertion.
-        | ${text} =    `Get Text`    id=important    ==    Important text    # Returns element text with assertion.
-        | ${text} =    `Get Text`    //input         ==    root              # Returns input element text with assertion.
-
-        [https://forum.robotframework.org/t/comments-for-get-text/4285|Comment >>]
+               [https://forum.robotframework.org/t/comments-for-get-text/4285|Comment >>]
         """
         selector = self.presenter_mode(selector, self.strict_mode)
         response = self._get_text(selector)
@@ -250,16 +240,12 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Returns the ``property`` of the element found by ``selector``.
 
-        ``selector`` Selector from which the info is to be retrieved.
-        See the `Finding elements` section for details about the selectors.
-
-        ``property`` Requested property name.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which the info is to be retrieved. See the `Finding elements` section for details about the selectors. |
+        | ``property`` | Requested property name. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -311,16 +297,12 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Returns the HTML ``attribute`` of the element found by ``selector``.
 
-        ``selector`` Selector from which the info is to be retrieved.
-        See the `Finding elements` section for details about the selectors.
-
-        ``attribute`` Requested attribute name.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which the info is to be retrieved. See the `Finding elements` section for details about the selectors. |
+        | ``attribute`` | Requested attribute name. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -377,14 +359,12 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Returns all HTML attribute names of an element as a list.
 
-        ``selector`` Selector from which the info is to be retrieved.
-        See the `Finding elements` section for details about the selectors.
 
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which the info is to be retrieved. See the `Finding elements` section for details about the selectors. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``*assertion_expected`` | Expected value for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -397,8 +377,6 @@ class Getters(LibraryComponent):
         - ``contains`` / ``*=`` only accepts one single expected value
 
         Other operators are not allowed.
-
-        ``message`` overrides the default error message.
 
         Example:
         | `Get Attribute Names`    [name="readonly_input"]    ==    type    name    value    readonly    # Has exactly these attribute names.
@@ -427,14 +405,12 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Returns all classes of an element as a list.
 
-        ``selector`` Selector from which the info is to be retrieved.
-        See the `Finding elements` section for details about the selectors.
 
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which the info is to be retrieved. See the `Finding elements` section for details about the selectors. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``*assertion_expected`` | Expected values for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -462,7 +438,7 @@ class Getters(LibraryComponent):
             list(class_dict.values()),
             assertion_operator,
             expected,
-            f"Classes of {selector}",
+            f"Classes of {self.resolve_selector(selector)}",
             message,
         )
 
@@ -480,14 +456,12 @@ class Getters(LibraryComponent):
         Returned dictionaries have the following keys and their values
         "index", "value", "label" and "selected".
 
-        ``selector`` Selector from which the info is to be retrieved.
-        See the `Finding elements` section for details about the selectors.
 
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which the info is to be retrieved. See the `Finding elements` section for details about the selectors. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -535,20 +509,18 @@ class Getters(LibraryComponent):
         option_attribute: SelectAttribute = SelectAttribute.label,
         assertion_operator: Optional[AssertionOperator] = None,
         *assertion_expected,
+        message: Optional[str] = None,
     ) -> Any:
         """Returns the specified attribute of selected options of the ``select`` element.
 
-        ``selector`` Selector from which the info is to be retrieved.
-        See the `Finding elements` section for details about the selectors.
-
-        ``option_attribute`` Which attribute shall be returned/verified.
-        Defaults to label.
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which the info is to be retrieved. See the `Finding elements` section for details about the selectors. |
+        | ``option_attribute`` | Which attribute shall be returned/verified. Defaults to label. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``*assertion_expected`` | Expected value for the state |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
 
         Optionally asserts that these match the specified assertion. See
         `Assertions` for further details for the assertion arguments. By default assertion
@@ -571,6 +543,7 @@ class Getters(LibraryComponent):
 
         [https://forum.robotframework.org/t//4280|Comment >>]
         """
+        selector = self.resolve_selector(selector)
         with self.playwright.grpc_channel() as stub:
             response = stub.GetSelectContent(
                 Request().ElementSelector(selector=selector, strict=self.strict_mode)
@@ -589,10 +562,7 @@ class Getters(LibraryComponent):
         if self.keyword_formatters.get(self.get_selected_options):
             logger.warn("Formatter is not supported by Get Selected Options keyword.")
         return list_verify_assertion(
-            selected,
-            assertion_operator,
-            expected,
-            "Selected Options:",
+            selected, assertion_operator, expected, "Selected Options:", message
         )
 
     @keyword(tags=("Getter", "Assertion", "PageContent"))
@@ -601,43 +571,33 @@ class Getters(LibraryComponent):
         self,
         selector: str,
         assertion_operator: Optional[AssertionOperator] = None,
-        expected_state: Union[bool, str] = "Unchecked",
+        assertion_expected: Union[bool, str] = "Unchecked",
         message: Optional[str] = None,
     ) -> bool:
         """Returns the state of the checkbox found by ``selector``.
 
-        ``selector`` Selector which shall be examined.
-        See the `Finding elements` section for details about the selectors.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the state
-
-        ``message`` overrides the default error message for assertion.
-
-        Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
         Optionally asserts that the state matches the specified assertion. See
         `Assertions` for further details for the assertion arguments. By default assertion
         is not done.
 
-        - ``==`` and ``!=`` and equivalent are allowed on boolean values
-        - other operators are not accepted.
-
-        ``expected_state`` boolean value of expected state.
-        Strings are interpreted as booleans.
-        All strings are ``${True}`` except of the
-        following `FALSE, NO, OFF, 0, UNCHECKED, NONE, ${EMPTY}``.
-        (case-insensitive). Defaults to unchecked
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector which shall be examined. See the `Finding elements` section for details about the selectors. |
+        | ``assertion_operator`` | ``==`` and ``!=`` and equivalent are allowed on boolean values. Other operators are not accepted. |
+        | ``assertion_expected`` | Boolean value of expected state. Strings are interpreted as booleans. All strings are ``${True}`` except of the following `FALSE, NO, OFF, 0, UNCHECKED, NONE, ${EMPTY}`` (case-insensitive). Defaults to unchecked. |
+        | ``message`` | overrides the default error message for assertion. |
 
         - ``checked`` => ``True``
         - ``unchecked`` => ``False``
+
+        Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
         Example:
         | `Get Checkbox State`    [name=can_send_email]    ==    checked
 
         [https://forum.robotframework.org/t//4261|Comment >>]
         """
+        selector = self.resolve_selector(selector)
         with self.playwright.grpc_channel() as stub:
             response = stub.GetBoolProperty(
                 Request().ElementProperty(
@@ -652,7 +612,7 @@ class Getters(LibraryComponent):
         return bool_verify_assertion(
             value,
             assertion_operator,
-            expected_state,
+            assertion_expected,
             f"Checkbox {selector} is",
             message,
         )
@@ -663,19 +623,16 @@ class Getters(LibraryComponent):
         self,
         selector: str,
         assertion_operator: Optional[AssertionOperator] = None,
-        expected_value: Union[int, str] = 0,
+        assertion_expected: Union[int, str] = 0,
         message: Optional[str] = None,
     ) -> Any:
         """Returns the count of elements found with ``selector``.
 
-        ``selector`` Selector which shall be counted.
-        See the `Finding elements` section for details about the selectors.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector which shall be counted. See the `Finding elements` section for details about the selectors. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the counting |
+        | ``message`` | overrides the default error message for assertion. |
 
         Optionally asserts that the state matches the specified assertion. See
         `Assertions` for further details for the assertion arguments. By default assertion
@@ -686,6 +643,7 @@ class Getters(LibraryComponent):
 
         [https://forum.robotframework.org/t//4270|Comment >>]
         """
+        selector = self.resolve_selector(selector)
         with self.playwright.grpc_channel() as stub:
             response = stub.GetElementCount(
                 Request().ElementSelector(selector=selector, strict=False)
@@ -696,7 +654,7 @@ class Getters(LibraryComponent):
             return float_str_verify_assertion(
                 int(count),
                 assertion_operator,
-                expected_value,
+                assertion_expected,
                 f"Element count for selector `{selector}` is",
                 message,
             )
@@ -712,17 +670,11 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Returns the current viewport dimensions.
 
-        ``key`` Optionally filters the returned values.
-        If keys is set to ``ALL`` (default) it will return the viewport size as dictionary,
-        otherwise it will just return the single value selected by the key.
-        Note: If a single value is retrieved, an assertion does *not* need a ``validate``
-        combined with a cast of ``value``.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``key`` | Optionally filters the returned values. If keys is set to ``ALL`` (default) it will return the viewport size as dictionary, otherwise it will just return the single value selected by the key. Note: If a single value is retrieved, an assertion does *not* need a ``validate`` combined with a cast of ``value``. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the counting |
+        | ``message`` | overrides the default error message for assertion. |
 
         Optionally asserts that the state matches the specified assertion. See
         `Assertions` for further details for the assertion arguments. By default assertion
@@ -737,7 +689,10 @@ class Getters(LibraryComponent):
         with self.playwright.grpc_channel() as stub:
             response = stub.GetViewportSize(Request().Empty())
             logger.info(response.log)
-            parsed = DotDict(json.loads(response.json))
+            response_json = json.loads(response.json)
+            if response_json is None:
+                return
+            parsed = DotDict(response_json)
             logger.debug(parsed)
             if self.keyword_formatters.get(self.get_viewport_size):
                 logger.warn("Formatter is not supported by Get Viewport Size keyword.")
@@ -763,15 +718,13 @@ class Getters(LibraryComponent):
     def get_table_cell_element(self, table: str, column: str, row: str) -> str:
         """Returns the Web Element that has the same column index and same row index as the selected elements.
 
-        ``table`` selector must select the ``<table>`` element that contains both selected elements
+        | =Arguments= | =Description= |
+        | ``table`` | selector must select the ``<table>`` element that contains both selected elements |
+        | ``column`` | selector can select any ``<th>`` or ``<td>`` element or one of their descendants. |
+        | ``row`` | selector can select any ``<tr>`` element or one of their descendant like ``<td>`` elements. |
 
-        ``column`` selector can select any ``<th>`` or ``<td>`` element or one of their descendants.
-
-         ``row`` selector can select any ``<tr>`` element or one of their descendant like ``<td>`` elements.
-
-         ``column`` and ``row`` can also consume index numbers instead of selectors.
-         Indexes are starting from ``0`` and ``-1`` is specific for the last element.
-
+        ``column`` and ``row`` can also consume index numbers instead of selectors.
+        Indexes are starting from ``0`` and ``-1`` is specific for the last element.
 
         Selectors for ``column`` and ``row`` are directly appended to ``table`` selector like this: ``f"{table} >> {row}" .``
 
@@ -783,7 +736,7 @@ class Getters(LibraryComponent):
 
 
         Example:
-        | ${table}=    Set Variable    id=Get Table Cell Element >> div.kw-docs table
+        | ${table}=    Set Variable    [id="Get Table Cell Element"] >> div.kw-docs table >> nth=1
         | ${e}=    `Get Table Cell Element`    ${table}    "Real Name"    "aaltat"   # Returns element with text ``Tatu Aalto``
         | Get Text    ${e}    ==    Tatu Aalto
         | ${e}=    `Get Table Cell Element`    ${table}    "Slack"    "Mikko Korpela"   # Returns element with text ``@mkorpela``
@@ -798,7 +751,8 @@ class Getters(LibraryComponent):
         node_name = str(self.library.execute_javascript("e => e.nodeName", table))
         if node_name != "TABLE":
             raise ValueError(
-                f"Selector {table} must select a <table> element but selects <{node_name.lower()}>."
+                f"Selector {self.resolve_selector(table)} must select a "
+                f"<table> element but selects <{node_name.lower()}>."
             )
         column_idx = (
             column
@@ -820,19 +774,16 @@ class Getters(LibraryComponent):
         self,
         selector: str,
         assertion_operator: Optional[AssertionOperator] = None,
-        expected_value: Union[int, str] = 0,
+        assertion_expected: Union[int, str] = 0,
         message: Optional[str] = None,
     ) -> Any:
         """Returns the index (0 based) of a table cell within its row.
 
-        ``selector`` can select any ``<th>`` or ``<td>`` element or one of their descendants.
-        See the `Finding elements` section for details about the selectors.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | can select any ``<th>`` or ``<td>`` element or one of their descendants. See the `Finding elements` section for details about the selectors. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the counting |
+        | ``message`` | overrides the default error message for assertion. |
 
         Example:
         | ${table}=    Set Variable    id=`Get Table Cell Element` >> div.kw-docs table   #Table of keyword `Get Table Cell Element`
@@ -846,6 +797,7 @@ class Getters(LibraryComponent):
 
         [https://forum.robotframework.org/t//4283|Comment >>]
         """
+        selector = self.resolve_selector(selector)
         with self.playwright.grpc_channel() as stub:
             response = stub.GetTableCellIndex(
                 Request().ElementSelector(selector=selector, strict=self.strict_mode)
@@ -858,7 +810,7 @@ class Getters(LibraryComponent):
             return float_str_verify_assertion(
                 int(count),
                 assertion_operator,
-                expected_value,
+                assertion_expected,
                 f"Element cell index for selector `{selector}` is",
                 message,
             )
@@ -869,19 +821,17 @@ class Getters(LibraryComponent):
         self,
         selector: str,
         assertion_operator: Optional[AssertionOperator] = None,
-        expected_value: Union[int, str] = 0,
+        assertion_expected: Union[int, str] = 0,
         message: Optional[str] = None,
     ) -> Any:
         """Returns the index (0 based) of a table row.
 
-        ``selector`` can select any ``<th>`` or ``<td>`` element or one of their descendants.
-        See the `Finding elements` section for details about the selectors.
 
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | can select any ``<th>`` or ``<td>`` element or one of their descendants. See the `Finding elements` section for details about the selectors. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the counting |
+        | ``message`` | overrides the default error message for assertion. |
 
         Example:
         | ${table}=    Set Variable    id=`Get Table Cell Element` >> div.kw-docs table   #Table of keyword `Get Table Cell Element`
@@ -895,6 +845,7 @@ class Getters(LibraryComponent):
 
         [https://forum.robotframework.org/t//4284|Comment >>]
         """
+        selector = self.resolve_selector(selector)
         with self.playwright.grpc_channel() as stub:
             response = stub.GetTableRowIndex(
                 Request().ElementSelector(selector=selector, strict=self.strict_mode)
@@ -907,7 +858,7 @@ class Getters(LibraryComponent):
             return float_str_verify_assertion(
                 int(count),
                 assertion_operator,
-                expected_value,
+                assertion_expected,
                 f"Element row index for selector `{selector}` is",
                 message,
             )
@@ -918,8 +869,9 @@ class Getters(LibraryComponent):
 
         The reference can be used in subsequent selectors.
 
-        ``selector`` Selector from which shall be retrieved .
-        See the `Finding elements` section for details about the selectors.
+
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which shall be retrieved . See the `Finding elements` section for details about the selectors. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -930,6 +882,7 @@ class Getters(LibraryComponent):
 
         [https://forum.robotframework.org/t/comments-for-get-element/4269|Comment >>]
         """
+        selector = self.resolve_selector(selector)
         with self.playwright.grpc_channel() as stub:
             response = stub.GetElement(
                 Request().ElementSelector(selector=selector, strict=self.strict_mode)
@@ -942,8 +895,9 @@ class Getters(LibraryComponent):
         """Returns a reference to Playwright [https://playwright.dev/docs/api/class-locator|Locator]
         for all matched elements by ``selector``.
 
-        ``selector`` Selector from which shall be retrieved.
-        See the `Finding elements` section for details about the selectors.
+
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which shall be retrieved. See the `Finding elements` section for details about the selectors. |
 
         Example:
         | ${elements} =    `Get Elements`
@@ -952,6 +906,7 @@ class Getters(LibraryComponent):
 
         [https://forum.robotframework.org/t//4273|Comment >>]
         """
+        selector = self.resolve_selector(selector)
         try:
             with self.playwright.grpc_channel(original_error=True) as stub:
                 response = stub.GetElements(
@@ -983,16 +938,13 @@ class Getters(LibraryComponent):
 
         Optionally matches with any sequence assertion operator.
 
-        ``selector`` Selector from which the style shall be retrieved.
-        See the `Finding elements` section for details about the selectors.
 
-        ``key`` Key of the requested CSS property. Retrieves "ALL" styles by default.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which the style shall be retrieved. See the `Finding elements` section for details about the selectors. |
+        | ``key`` | Key of the requested CSS property. Retrieves "ALL" styles by default. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the counting |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -1046,20 +998,13 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Gets elements size and location as an object ``{x: float, y: float, width: float, height: float}``.
 
-        ``selector`` Selector from which shall be retrieved.
-        See the `Finding elements` section for details about the selectors.
 
-        ``key`` Optionally filters the returned values.
-        If keys is set to ``ALL`` (default) it will return the BoundingBox as Dictionary,
-        otherwise it will just return the single value selected by the key.
-        Note: If a single value is retrieved, an assertion does *not* need a ``validate``
-        combined with a cast of ``value``.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector from which shall be retrieved. See the `Finding elements` section for details about the selectors. |
+        | ``key`` | Optionally filters the returned values. If keys is set to ``ALL`` (default) it will return the BoundingBox as Dictionary, otherwise it will just return the single value selected by the key. Note: If a single value is retrieved, an assertion does *not* need a ``validate`` combined with a cast of ``value``. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the counting |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -1078,6 +1023,7 @@ class Getters(LibraryComponent):
 
         [https://forum.robotframework.org/t//4258|Comment >>]
         """
+        selector = self.presenter_mode(selector, self.strict_mode)
         with self.playwright.grpc_channel() as stub:
             response = stub.GetBoundingBox(
                 Request.ElementSelector(selector=selector, strict=self.strict_mode)
@@ -1112,19 +1058,13 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Gets elements or pages scrollable size as object ``{width: float, height: float}``.
 
-        ``selector`` Optional selector from which shall be retrieved.
-        If no selector is given the scroll size of the page itself is used.
-        See the `Finding elements` section for details about the selectors.
 
-        ``key`` Optionally filters the returned values.
-        If keys is set to ``ALL`` (default) it will return the scroll size as dictionary,
-        otherwise it will just return the single value selected by the key.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Optional selector from which shall be retrieved. If no selector is given the scroll size of the page itself is used. See the `Finding elements` section for details about the selectors. |
+        | ``key`` | Optionally filters the returned values. If keys is set to ``ALL`` (default) it will return the scroll size as dictionary, otherwise it will just return the single value selected by the key. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the counting |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -1143,8 +1083,8 @@ class Getters(LibraryComponent):
         [https://forum.robotframework.org/t//4278|Comment >>]
         """
         scroll_size = DotDict()
-        scroll_size["width"] = exec_scroll_function(self, "scrollWidth", selector)
-        scroll_size["height"] = exec_scroll_function(self, "scrollHeight", selector)
+        scroll_size["width"] = self.exec_scroll_function("scrollWidth", selector)
+        scroll_size["height"] = self.exec_scroll_function("scrollHeight", selector)
         if self.keyword_formatters.get(self.get_scroll_size):
             logger.warn("Formatter is not supported by Get Scroll Size keyword.")
         if key == SizeFields.ALL:
@@ -1180,22 +1120,13 @@ class Getters(LibraryComponent):
         It describes the rectangle which is visible of the scrollable content of that element.
         all values are measured from position {top: 0, left: 0}.
 
-        ``top`` uses js function scrollTop, ``left`` uses scrollLeft and
-        ``bottom`` and ``right`` are calculated with the client size.
 
-        ``selector`` Optional selector from which shall be retrieved.
-        If no selector is given the client size of the page itself is used (``document.scrollingElement``).
-        See the `Finding elements` section for details about the selectors.
-
-        ``key`` Optionally filters the returned values.
-        If keys is set to ``ALL`` (default) it will return the scroll position as dictionary,
-        otherwise it will just return the single value selected by the key.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Optional selector from which shall be retrieved. If no selector is given the client size of the page itself is used (``document.scrollingElement``). See the `Finding elements` section for details about the selectors. |
+        | ``key`` | Optionally filters the returned values. If keys is set to ``ALL`` (default) it will return the scroll position as dictionary, otherwise it will just return the single value selected by the key. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the counting |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -1208,8 +1139,8 @@ class Getters(LibraryComponent):
         [https://forum.robotframework.org/t//4277|Comment >>]
         """
         scroll_position = DotDict()
-        scroll_position["top"] = exec_scroll_function(self, "scrollTop", selector)
-        scroll_position["left"] = exec_scroll_function(self, "scrollLeft", selector)
+        scroll_position["top"] = self.exec_scroll_function("scrollTop", selector)
+        scroll_position["left"] = self.exec_scroll_function("scrollLeft", selector)
         client_size = self.get_client_size(selector)
         scroll_position["bottom"] = scroll_position["top"] + client_size["height"]
         scroll_position["right"] = scroll_position["left"] + client_size["width"]
@@ -1245,19 +1176,13 @@ class Getters(LibraryComponent):
     ) -> Any:
         """Gets elements or pages client size (``clientHeight``, ``clientWidth``) as object {width: float, height: float}.
 
-        ``selector`` Optional selector from which shall be retrieved.
-        If no selector is given the client size of the page itself is used (``document.scrollingElement``).
-        See the `Finding elements` section for details about the selectors.
 
-        ``key`` Optionally filters the returned values.
-        If keys is set to ``ALL`` (default) it will return the scroll size as dictionary,
-        otherwise it will just return the single value selected by the key.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
+        | =Arguments= | =Description= |
+        | ``selector`` | Optional selector from which shall be retrieved. If no selector is given the client size of the page itself is used (``document.scrollingElement``). See the `Finding elements` section for details about the selectors. |
+        | ``key`` | Optionally filters the returned values. If keys is set to ``ALL`` (default) it will return the scroll size as dictionary, otherwise it will just return the single value selected by the key. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``assertion_expected`` | Expected value for the counting |
+        | ``message`` | overrides the default error message for assertion. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -1270,8 +1195,8 @@ class Getters(LibraryComponent):
         [https://forum.robotframework.org/t//4263|Comment >>]
         """
         client_size = DotDict()
-        client_size["width"] = exec_scroll_function(self, "clientWidth", selector)
-        client_size["height"] = exec_scroll_function(self, "clientHeight", selector)
+        client_size["width"] = self.exec_scroll_function("clientWidth", selector)
+        client_size["height"] = self.exec_scroll_function("clientHeight", selector)
         if self.keyword_formatters.get(self.get_client_size):
             logger.warn("Formatter is not supported by Get Clinet Size keyword.")
         if key == SizeFields.ALL:
@@ -1323,22 +1248,21 @@ class Getters(LibraryComponent):
 
         If the selector does satisfy the expected state it will return ``True`` otherwise ``False``.
 
-        ``selector`` Selector of the corresponding object.
-        See the `Finding elements` section for details about the selectors.
+        ``selector`` Selector of the corresponding object. See the `Finding elements` section for details about the selectors.
 
         ``state`` Defaults to visible. Possible states are
+
+        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
+
+        ``assertion_expected`` Expected value for the counting
+
+        ``message`` overrides the default error message for assertion.
 
         Note that element must be attached to DOM to be able to fetch the state of ``readonly`` , ``selected`` and ``checked``.
         The other states are false if the requested element is not attached.
 
         Note that element without any content or with display:none has an empty bounding box
         and is not considered visible.
-
-        ``assertion_operator`` See `Assertions` for further details. Defaults to None.
-
-        ``expected_value`` Expected value for the counting
-
-        ``message`` overrides the default error message for assertion.
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -1357,6 +1281,7 @@ class Getters(LibraryComponent):
 
         if self.keyword_formatters.get(self.get_element_state):
             logger.warn("Formatter is not supported by Get Element State keyword.")
+        selector = self.resolve_selector(selector)
         return bool_verify_assertion(
             result,
             assertion_operator,
@@ -1378,8 +1303,14 @@ class Getters(LibraryComponent):
         """Get the active states from the element found by ``selector``.
 
         This Keyword returns a list of states that are valid for the selected element.
-        If Argument ``return_names=False`` is set the keyword does return an IntFlag]
-        object instead of a list.
+
+
+        | =Arguments= | =Description= |
+        | ``selector`` | Selector of the corresponding object. See the `Finding elements` section for details about the selectors. |
+        | ``assertion_operator`` | See `Assertions` for further details. Defaults to None. |
+        | ``*assertion_expected`` | Expected states |
+        | ``message`` | overrides the default error message for assertion. |
+        | ``return_names`` | If set to ``False`` the keyword does return an IntFlag object instead of a list. Defaults to ``True``. |
 
         Optionally asserts that the state matches the specified assertion. See
         `Assertions` for further details for the assertion arguments. By default, assertion
@@ -1391,8 +1322,8 @@ class Getters(LibraryComponent):
         contain the states as `ElementState`.
 
         Example:
-        | `Get Element States`    h1    validate    value | visible
-        | `Get Element States`    h1    then    value & (visible | hidden)  # returns either ``['visible']`` or ``['hidden']``
+        | `Get Element States`    h1    validate    value & visible   # Fails in case of an invisible element
+        | `Get Element States`    h1    then    value & (visible | hidden)  # Returns either ``['visible']`` or ``['hidden']``
         | `Get Element States`    h1    then    bool(value & visible)  # Returns ``${True}`` if element is visible
 
         The most typical use case would be to verify if an element contains a specific state or multiple states.
@@ -1420,6 +1351,7 @@ class Getters(LibraryComponent):
 
         [https://forum.robotframework.org/t/comments-for-get-element-states/4272|Comment >>]
         """
+        selector = self.resolve_selector(selector)
 
         def convert_str(f):
             return f.name if isinstance(f, ElementState) else f
