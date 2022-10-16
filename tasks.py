@@ -74,7 +74,7 @@ from previous release with pip_, run
    rfbrowser init
 Alternatively you can download the source distribution from PyPI_ and 
 install it manually. Browser library {version} was released on {date}. 
-Browser supports Python 3.7+, Node 12/14/16 LTS and Robot Framework 4.0+. 
+Browser supports Python 3.7+, Node 14/16 LTS and Robot Framework 4.0+. 
 Library was tested with Playwright REPLACE_PW_VERSION
 
 .. _Robot Framework: http://robotframework.org
@@ -250,7 +250,15 @@ def utest(c, reporter=None, suite=None):
 
     To create coverage use: coverage run -m invoke utest
     """
-    args = ["--showlocals", "--junitxml=utest/output/pytest_xunit.xml", "--tb=long"]
+    args = [
+        "--showlocals",
+        "--junitxml=utest/output/pytest_xunit.xml",
+        "--tb=long",
+        "-o",
+        "log_cli=True",
+        "-o",
+        "log_cli_level=INFO",
+    ]
     if reporter:
         args.append(f"--approvaltests-add-reporter={reporter}")
     if suite:
@@ -295,6 +303,9 @@ def atest(
         smoke: If true, runs only tests that take less than 500ms.
         include_mac: Does not exclude no-mac-support tags. Should be only used in local testing
     """
+    if "gitpod.io" in os.environ.get("GITPOD_HOST", "") and (not processes or int(processes) > 6):
+        processes = "6"
+
     args = [] if processes is None else ["--processes", processes]
 
     args.extend(
