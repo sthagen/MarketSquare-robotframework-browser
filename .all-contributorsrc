@@ -872,6 +872,24 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "jcb-entrnce",
+      "name": "jcb-entrnce",
+      "avatar_url": "https://avatars.githubusercontent.com/u/73102679?v=4",
+      "profile": "https://github.com/jcb-entrnce",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Remppa",
+      "name": "Remppa",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17778362?v=4",
+      "profile": "https://github.com/Remppa",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
