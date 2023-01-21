@@ -12,15 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
+import json
 import logging
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
 import traceback
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, STDOUT, CalledProcessError, Popen
+
+from robot import version as rf_version  # noqa
 
 INSTALLATION_DIR = Path(__file__).parent / "wrapper"
 NODE_MODULES = INSTALLATION_DIR / "node_modules"
@@ -28,12 +33,20 @@ NODE_MODULES = INSTALLATION_DIR / "node_modules"
 # But shell=True breaks our linux CI
 SHELL = True if platform.platform().startswith("Windows") else False
 CURRENT_FOLDER = Path(__file__).resolve().parent
-INSTALL_LOG = CURRENT_FOLDER / "rfbrowser.log"
+log_file = "rfbrowser.log"
+INSTALL_LOG = CURRENT_FOLDER / log_file
+try:
+    INSTALL_LOG.touch(exist_ok=True)
+except Exception as error:
+    print(f"Cound not wwrite to {INSTALL_LOG}, got error: {error}")
+    INSTALL_LOG = Path(os.getcwd()) / log_file
+    print(f"Writing install log to: {INSTALL_LOG}")
+
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)-8s] %(message)s",
     handlers=[
-        logging.FileHandler(INSTALL_LOG, mode="w"),
+        RotatingFileHandler(INSTALL_LOG, maxBytes=2000000, backupCount=10, mode="a"),
         logging.StreamHandler(sys.stdout),
     ],
 )
@@ -188,6 +201,23 @@ def show_trace(file: str):
     subprocess.run(trace_arguments, env=env, shell=SHELL, cwd=INSTALLATION_DIR)
 
 
+def show_versions():
+    _write_marker()
+    version_file = CURRENT_FOLDER / "version.py"
+    version_text = version_file.read_text()
+    match = re.search(r"\"\d+\.\d+.\d+\"", version_text)
+    browser_lib_version = match.group(0)
+    package_json = INSTALLATION_DIR / "package.json"
+    package_json_data = json.loads(package_json.read_text())
+    match = re.search(r"\d+\.\d+\.\d+", package_json_data["dependencies"]["playwright"])
+    pw_version = match.group(0)
+    logging.info(
+        f'Installed Browser library version is: {browser_lib_version} with RF "{rf_version.VERSION}"'
+    )
+    logging.info(f'Installed Playwright is: "{pw_version}"')
+    _write_marker()
+
+
 # Based on: https://stackoverflow.com/questions/3853722/how-to-insert-newlines-on-argparse-help-text
 class SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
@@ -209,6 +239,8 @@ def runner(command, skip_browsers, trace_file):
         if not trace_file:
             raise Exception("show-trace needs also --file argument")
         show_trace(trace_file)
+    elif command == "version":
+        show_versions()
     else:
         raise Exception(
             f"Command should be init, clean-node or show-trace, but it was {command}"
@@ -224,14 +256,15 @@ def main():
     parser.add_argument(
         "command",
         help=(
-            "Possible commands are:\ninit\nclean-node\nshow-trace\n\ninit command will install the required node "
+            "Possible commands are:\ninit\nclean-node\nshow-trace\nversion\n\ninit command will install the required node "
             "dependencies. init command is needed when library is installed or updated.\n\nclean-node is used to delete"
             "node side dependencies and installed browser binaries from the library default installation location. "
             "When upgrading browser library, it is recommended to clean old node side binaries after upgrading the "
             "Python side. Example:\n1) pip install -U robotframework-browser\n2) rfbrowser clean-node\n3)rfbrowser "
             "init.\nRun rfbrowser clean-node command also before uninstalling the library with pip. This makes sure "
             "that playwright browser binaries are not left in the disk after the pip uninstall command."
-            "\n\nshow-trace command will start the Playwright trace viewer tool.\n\nSee the each command argument "
+            "\n\nshow-trace command will start the Playwright trace viewer tool.\n\nversion command displays the "
+            "installed Browser library, Robot Framework and Playwright versions.\n\nSee the each command argument "
             "group for more details what (optional) arguments that command supports."
         ),
         type=str,

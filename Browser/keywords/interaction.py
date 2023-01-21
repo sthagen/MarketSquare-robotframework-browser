@@ -1093,6 +1093,26 @@ class Interaction(LibraryComponent):
             logger.debug(response.log)
 
     @keyword(tags=("Setter", "PageContent"))
+    def mouse_wheel(self, deltaX: int, deltaY: int):
+        """Simulates the user rotation of a mouse wheel.
+
+        | =Arguments= | =Description= |
+        | ``deltaX`` & ``deltaY`` | Pixels that are scrolled horizontally & vertically. |
+
+        Example:
+        | # Before doing a mouse wheel interaction. A mouse needs to be posisioned on the browser window.
+        | `Hover`    body
+        | `Mouse Wheel`    0    250
+
+        [https://forum.robotframework.org/t//5186|Comment >>]
+        """
+        with self.playwright.grpc_channel() as stub:
+            response = stub.MouseWheel(
+                Request().MouseWheel(deltaX=deltaX, deltaY=deltaY)
+            )
+            logger.info(response.log)
+
+    @keyword(tags=("Setter", "PageContent"))
     def keyboard_key(self, action: KeyAction, key: str):
         """Press a keyboard key on the virtual keyboard or set a key up or down.
 

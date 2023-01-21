@@ -26,11 +26,11 @@ from typing import Any, Dict, List, Optional, Set, Union
 
 from assertionengine import AssertionOperator, Formatter
 from overrides import overrides
-from robot.errors import DataError  # type: ignore
-from robot.libraries.BuiltIn import EXECUTION_CONTEXTS, BuiltIn  # type: ignore
-from robot.running.arguments import PythonArgumentParser  # type: ignore
-from robot.running.arguments.typeconverters import TypeConverter  # type: ignore
-from robot.utils import secs_to_timestr, timestr_to_secs  # type: ignore
+from robot.errors import DataError
+from robot.libraries.BuiltIn import EXECUTION_CONTEXTS, BuiltIn
+from robot.running.arguments import PythonArgumentParser
+from robot.running.arguments.typeconverters import TypeConverter
+from robot.utils import secs_to_timestr, timestr_to_secs
 from robotlibcore import DynamicCore, PluginParser  # type: ignore
 
 from .base import ContextCache, LibraryComponent
@@ -616,6 +616,14 @@ class Browser(DynamicCore):
 
     ``PORT`` is the port you want to use for the node process.
     To execute tests then with pabot for example do ``ROBOT_FRAMEWORK_BROWSER_NODE_PORT=PORT pabot ..``.
+
+    = Experimental: Provide parameters to node process =
+
+    Browser library is integrated with NodeJSand and Python. Browser library starts a node process, to communicate
+    Playwright API in NodeJS side. It is possible to provide parameters for the started node process by defining
+    ROBOT_FRAMEWORK_BROWSER_NODE_DEBUG_OPTIONS environment variable, before starting the test execution. Example:
+    ``ROBOT_FRAMEWORK_BROWSER_NODE_DEBUG_OPTIONS=--inspect;robot path/to/tests``.
+    There can be multiple arguments defined in the environment variable and arguments must be separated with comma.
 
     = Scope Setting =
 

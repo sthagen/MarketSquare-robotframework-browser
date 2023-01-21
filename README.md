@@ -1,6 +1,6 @@
 # robotframework-browser
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-98-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-105-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Version](https://img.shields.io/pypi/v/robotframework-browser.svg)](https://pypi.python.org/pypi/robotframework-browser)
 [![Actions Status](https://github.com/MarketSquare/robotframework-browser/workflows/Continuous%20integration/badge.svg)](https://github.com/MarketSquare/robotframework-browser/actions)
@@ -8,7 +8,7 @@
 
 ----
 
-[Robot Framework](https://robotframework.org) Browser library powered by [Playwright](https://playwright.dev/). Moving browser automation to year 2021!
+[Robot Framework](https://robotframework.org) Browser library powered by [Playwright](https://playwright.dev/). Moving browser automation to year 2023!
 
 Aiming for :rocket: speed, :white_check_mark: reliability and :microscope: visibility.
 
@@ -289,6 +289,15 @@ Supported by [Robocorp](https://robocorp.com/) through [Robot Framework Foundati
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Remppa"><img src="https://avatars.githubusercontent.com/u/17778362?v=4?s=100" width="100px;" alt="Remppa"/><br /><sub><b>Remppa</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3ARemppa" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tomekPawlak"><img src="https://avatars.githubusercontent.com/u/39945193?v=4?s=100" width="100px;" alt="Tomasz Pawlak"/><br /><sub><b>Tomasz Pawlak</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3AtomekPawlak" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/stude1"><img src="https://avatars.githubusercontent.com/u/5876939?v=4?s=100" width="100px;" alt="Timo Stordell"/><br /><sub><b>Timo Stordell</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Astude1" title="Bug reports">🐛</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MarcinGmurczyk"><img src="https://avatars.githubusercontent.com/u/11760932?v=4?s=100" width="100px;" alt="Marcin Gmurczyk"/><br /><sub><b>Marcin Gmurczyk</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/commits?author=MarcinGmurczyk" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.imbus.de"><img src="https://avatars.githubusercontent.com/u/7069968?v=4?s=100" width="100px;" alt="Daniel Biehl"/><br /><sub><b>Daniel Biehl</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Ad-biehl" title="Bug reports">🐛</a> <a href="#ideas-d-biehl" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rarajabs"><img src="https://avatars.githubusercontent.com/u/1460421?v=4?s=100" width="100px;" alt="rarajabs"/><br /><sub><b>rarajabs</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Ararajabs" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sandeepvaidya"><img src="https://avatars.githubusercontent.com/u/6525205?v=4?s=100" width="100px;" alt="Sandeep Vaidya"/><br /><sub><b>Sandeep Vaidya</b></sub></a><br /><a href="#ideas-sandeepvaidya" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/falk7"><img src="https://avatars.githubusercontent.com/u/61115124?v=4?s=100" width="100px;" alt="falk"/><br /><sub><b>falk</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/commits?author=falk7" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ciadoh"><img src="https://avatars.githubusercontent.com/u/68943309?v=4?s=100" width="100px;" alt="ciadoh"/><br /><sub><b>ciadoh</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Aciadoh" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/johanvaniperen"><img src="https://avatars.githubusercontent.com/u/36015334?v=4?s=100" width="100px;" alt="Johan van Iperen"/><br /><sub><b>Johan van Iperen</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/commits?author=johanvaniperen" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

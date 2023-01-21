@@ -71,9 +71,9 @@ from previous release with pip_, run
    pip install --upgrade robotframework-browser
    rfbrowser clean-node
    rfbrowser init
-Alternatively you can download the source distribution from PyPI_ and 
-install it manually. Browser library {version} was released on {date}. 
-Browser supports Python 3.7+, Node 14/16 LTS and Robot Framework 4.0+. 
+Alternatively you can download the source distribution from PyPI_ and
+install it manually. Browser library {version} was released on {date}.
+Browser supports Python 3.7+, Node 14/16 LTS and Robot Framework 4.0+.
 Library was tested with Playwright REPLACE_PW_VERSION
 
 .. _Robot Framework: http://robotframework.org
@@ -81,7 +81,7 @@ Library was tested with Playwright REPLACE_PW_VERSION
 .. _Playwright: https://github.com/microsoft/playwright
 .. _pip: http://pip-installer.org
 .. _PyPI: https://pypi.python.org/pypi/robotframework-browser
-.. _issue tracker: https://github.com/MarketSquare/robotframework-browser/milestones%3A{version.milestone}
+.. _issue tracker: https://github.com/MarketSquare/robotframework-browser/milestones/{version.milestone}
 """
 
 
@@ -586,7 +586,9 @@ def lint_python(c):
         (ROOT_DIR / "utest").glob("**/*.py")
     )
     if _sources_changed(all_py_sources, python_lint_timestamp_file):
-        c.run("mypy --show-error-codes --config-file Browser/mypy.ini Browser/ utest/")
+        c.run(
+            "mypy --exclude .venv --show-error-codes --config-file Browser/mypy.ini Browser/ utest/"
+        )
         c.run("black --config Browser/pyproject.toml tasks.py Browser/")
         c.run("flake8 --config Browser/.flake8 Browser/ utest/")
         c.run("isort Browser/")
