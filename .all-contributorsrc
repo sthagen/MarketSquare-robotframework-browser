@@ -974,6 +974,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "fabioz",
+      "name": "Fabio Zadrozny",
+      "avatar_url": "https://avatars.githubusercontent.com/u/117621?v=4",
+      "profile": "https://github.com/fabioz",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "BCGST",
+      "name": "BCGST",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105816460?v=4",
+      "profile": "https://github.com/BCGST",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
