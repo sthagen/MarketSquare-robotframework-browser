@@ -732,7 +732,7 @@ class Browser(DynamicCore):
     _context_cache = ContextCache()
     _suite_cleanup_done = False
 
-    old_init_args = {
+    _old_init_args = {
         "timeout": timedelta,
         "enable_playwright_debug": bool,
         "auto_closing_level": AutoClosingLevel,
@@ -788,8 +788,8 @@ class Browser(DynamicCore):
 
         """
         self.ROBOT_LIBRARY_LISTENER = self
-
-        old_args_list = list(self.old_init_args.items())
+        self.scope_stack: Dict = {}
+        old_args_list = list(self._old_init_args.items())
         pos_params = {}
         for index, pos_arg in enumerate(deprecated_pos_args):
             argument_name = old_args_list[index][0]
@@ -806,9 +806,10 @@ class Browser(DynamicCore):
         params = {**pos_params, **params}
 
         self._playwright_state = PlaywrightState(self)
+        self._browser_control = Control(self)
         libraries = [
             self._playwright_state,
-            Control(self),
+            self._browser_control,
             Cookie(self),
             Crawling(self),
             Devices(self),
@@ -823,17 +824,10 @@ class Browser(DynamicCore):
             Waiter(self),
             WebAppState(self),
         ]
-        self.timeout_stack = SettingsStack(
-            self.convert_timeout(params["timeout"]), self
-        )
         self.playwright = Playwright(
             self, params["enable_playwright_debug"], playwright_process_port
         )
         self._auto_closing_level: AutoClosingLevel = params["auto_closing_level"]
-        self.retry_assertions_for_stack = SettingsStack(
-            self.convert_timeout(params["retry_assertions_for"]),
-            self,
-        )
         # Parsing needs keywords to be discovered.
         self.external_browser_executable: Dict[SupportedBrowsers, str] = (
             params["external_browser_executable"] or {}
@@ -852,27 +846,49 @@ class Browser(DynamicCore):
         self.presenter_mode: Union[HighLightElement, bool] = params[
             "enable_presenter_mode"
         ]
-        self.strict_mode_stack = SettingsStack(params["strict"], self)
-        self.show_keyword_call_banner = params["show_keyword_call_banner"]
-        self.selector_prefix_stack = SettingsStack(selector_prefix, self)
         self._execution_stack: List[dict] = []
         self._running_on_failure_keyword = False
         self.pause_on_failure: Set[str] = set()
         self._unresolved_promises: Set[Future] = set()
-        self.current_arguments = ()
-        self.keyword_call_banner_add_style: str = ""
         self._keyword_formatters: dict = {}
         self._current_loglevel: Optional[str] = None
         self.is_test_case_running = False
 
         DynamicCore.__init__(self, libraries)
-        self.run_on_failure_keyword = self._parse_run_on_failure_keyword(
-            params["run_on_failure"]
+
+        self.scope_stack["timeout"] = SettingsStack(
+            self.convert_timeout(params["timeout"]),
+            self,
+            self._browser_control.set_playwright_timeout,
         )
+        self.scope_stack["retry_assertions_for"] = SettingsStack(
+            self.convert_timeout(params["retry_assertions_for"]), self
+        )
+        self.scope_stack["strict_mode"] = SettingsStack(params["strict"], self)
+        self.scope_stack["selector_prefix"] = SettingsStack(selector_prefix, self)
+        self.scope_stack["run_on_failure"] = SettingsStack(
+            self._parse_run_on_failure_keyword(params["run_on_failure"]), self
+        )
+        self.scope_stack["show_keyword_call_banner"] = SettingsStack(
+            params["show_keyword_call_banner"], self
+        )
+        self.scope_stack["keyword_call_banner_add_style"] = SettingsStack("", self)
+
+    @property
+    def keyword_call_banner_add_style(self):
+        return self.scope_stack["keyword_call_banner_add_style"].get()
+
+    @property
+    def show_keyword_call_banner(self):
+        return self.scope_stack["show_keyword_call_banner"].get()
+
+    @property
+    def run_on_failure_keyword(self) -> DelayedKeyword:
+        return self.scope_stack["run_on_failure"].get()
 
     @property
     def timeout(self):
-        return self.timeout_stack.get()
+        return self.scope_stack["timeout"].get()
 
     def _parse_run_on_failure_keyword(
         self, keyword_name: Union[str, None]
@@ -1040,7 +1056,7 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
     def state_file(self):
         return self.browser_output / "state"
 
-    def _start_suite(self, name, attrs):
+    def _start_suite(self, _name, attrs):
         self._add_to_scope_stack(attrs, Scope.Suite)
         if not Browser._suite_cleanup_done:
             Browser._suite_cleanup_done = True
@@ -1059,7 +1075,7 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
             except ConnectionError as e:
                 logger.debug(f"Browser._start_suite connection problem: {e}")
 
-    def _start_test(self, name, attrs):
+    def _start_test(self, _name, attrs):
         self._add_to_scope_stack(attrs, Scope.Test)
         self.is_test_case_running = True
         if self._auto_closing_level == AutoClosingLevel.TEST:
@@ -1068,16 +1084,14 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
             except ConnectionError as e:
                 logger.debug(f"Browser._start_test connection problem: {e}")
 
-    def _start_keyword(self, name, attrs):
-        if (
+    def _start_keyword(self, _name, attrs):
+        if not (
             self.show_keyword_call_banner is False
             or (self.show_keyword_call_banner is None and not self.presenter_mode)
             or attrs["libname"] != "Browser"
             or attrs["status"] == "NOT RUN"
         ):
-            return
-        self._show_keyword_call(attrs)
-        self.current_arguments = tuple(attrs["args"])
+            self._show_keyword_call(attrs)
         if "secret" in attrs["kwname"].lower() and attrs["libname"] == "Browser":
             self._set_logging(False)
 
@@ -1112,7 +1126,7 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
             tags.append("plugin")
         return tags
 
-    def _end_keyword(self, name, attrs):
+    def _end_keyword(self, _name, attrs):
         if "secret" in attrs["kwname"].lower() and attrs["libname"] == "Browser":
             self._set_logging(True)
 
@@ -1152,16 +1166,12 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
                 logger.debug(f"Browser._end_suite connection problem: {e}")
 
     def _add_to_scope_stack(self, attrs: Dict[str, Any], scope: Scope):
-        self.timeout_stack.start(attrs["id"], scope)
-        self.strict_mode_stack.start(attrs["id"], scope)
-        self.retry_assertions_for_stack.start(attrs["id"], scope)
-        self.selector_prefix_stack.start(attrs["id"], scope)
+        for stack in self.scope_stack.values():
+            stack.start(attrs["id"], scope)
 
     def _remove_from_scope_stack(self, attrs: Dict[str, Any]):
-        self.timeout_stack.end(attrs["id"])
-        self.strict_mode_stack.end(attrs["id"])
-        self.retry_assertions_for_stack.end(attrs["id"])
-        self.selector_prefix_stack.end(attrs["id"])
+        for stack in self.scope_stack.values():
+            stack.end(attrs["id"])
 
     def _prune_execution_stack(self, catalog_before: dict) -> None:
         catalog_after = self.get_browser_catalog()
@@ -1257,7 +1267,7 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
                     self.run_on_failure_keyword.name == "take_screenshot"
                     and not varargs
                 ):
-                    varargs = [self._failure_screenshot_path()]
+                    varargs = (self._failure_screenshot_path(),)
                 self.keywords[self.run_on_failure_keyword.name](*varargs, **kwargs)
             else:
                 BuiltIn().run_keyword(
@@ -1281,7 +1291,7 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
 
     def get_timeout(self, timeout: Union[timedelta, None]) -> float:
         if timeout is None:
-            return self.timeout_stack.get()
+            return self.scope_stack["timeout"].get()
         return self.convert_timeout(timeout)
 
     def convert_timeout(

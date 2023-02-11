@@ -22,7 +22,7 @@ class TypedDictDummy(TypedDict):
     pass
 
 
-def convert_typed_dict(function_annotations: Dict, params: Dict) -> Dict:
+def convert_typed_dict(function_annotations: Dict, params: Dict) -> Dict:  # noqa: C901
     for arg_name, arg_type in function_annotations.items():
         if arg_name not in params or params[arg_name] is None:
             continue
@@ -548,6 +548,21 @@ class ScreenshotFileTypes(Enum):
     jpeg = auto()
 
 
+class ScreenshotReturnType(Enum):
+    """Enum that defines what `Take Screenshot` keyword returns.
+
+    - ``path`` returns the path to the screenshot file as ``pathlib.Path`` object.
+    - ``path_string`` returns the path to the screenshot file as string.
+    - ``bytes`` returns the screenshot itself as bytes.
+    - ``base64`` returns the screenshot itself as base64 encoded string.
+    """
+
+    path = auto()
+    path_string = auto()
+    bytes = auto()
+    base64 = auto()
+
+
 class PageLoadStates(Enum):
     """Enum that defines available page load states."""
 
@@ -624,6 +639,27 @@ class ConditionInputs(Enum):
 
 
 class Scope(Enum):
+    """Some keywords which manipulates library settings have a scope argument.
+    With that scope argument one can set the "live time" of that setting.
+    Available Scopes are: ``Global``, ``Suite`` and ``Test`` / ``Task``.
+    Is a scope finished, this scoped setting, like timeout, will no longer be used and the previous higher scope setting applies again.
+
+    Live Times:
+
+    - A ``Global`` scope will live forever until it is overwritten by another Global scope.
+      Or locally temporarily overridden by a more narrow scope.
+    - A ``Suite`` scope will locally override the Global scope and
+      live until the end of the Suite within it is set, or if it is overwritten
+      by a later setting with Global or same scope.
+      Children suite does inherit the setting from the parent suite but also may have
+      its own local Suite setting that then will be inherited to its children suites.
+    - A ``Test`` or ``Task`` scope will be inherited from its parent suite but when set,
+      lives until the end of that particular test or task.
+
+    A new set higher order scope will always remove the lower order scope which may be in charge.
+    So the setting of a Suite scope from a test, will set that scope to the robot file suite where
+    that test is and removes the Test scope that may have been in place."""
+
     Global = auto()
     Suite = auto()
     Test = auto()

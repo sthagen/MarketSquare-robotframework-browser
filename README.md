@@ -1,6 +1,6 @@
 # robotframework-browser
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-107-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-108-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Version](https://img.shields.io/pypi/v/robotframework-browser.svg)](https://pypi.python.org/pypi/robotframework-browser)
 [![Actions Status](https://github.com/MarketSquare/robotframework-browser/workflows/Continuous%20integration/badge.svg)](https://github.com/MarketSquare/robotframework-browser/actions)
@@ -252,7 +252,7 @@ Supported by [Robocorp](https://robocorp.com/) through [Robot Framework Foundati
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Atihinen"><img src="https://avatars.githubusercontent.com/u/5866905?v=4?s=100" width="100px;" alt="Atihinen"/><br /><sub><b>Atihinen</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3AAtihinen" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/gvr-kumar"><img src="https://avatars.githubusercontent.com/u/11802756?v=4?s=100" width="100px;" alt="gvrkumar"/><br /><sub><b>gvrkumar</b></sub></a><br /><a href="#ideas-gvr-kumar" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/laurihelkkula"><img src="https://avatars.githubusercontent.com/u/26920007?v=4?s=100" width="100px;" alt="Lauri Helkkula"/><br /><sub><b>Lauri Helkkula</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Alaurihelkkula" title="Bug reports">🐛</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rlall07"><img src="https://avatars.githubusercontent.com/u/20052315?v=4?s=100" width="100px;" alt="rlall07"/><br /><sub><b>rlall07</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Arlall07" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rlall07"><img src="https://avatars.githubusercontent.com/u/20052315?v=4?s=100" width="100px;" alt="rlall07"/><br /><sub><b>rlall07</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Arlall07" title="Bug reports">🐛</a> <a href="#ideas-rlall07" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://medium.com/@eldadu1985"><img src="https://avatars.githubusercontent.com/u/55621402?v=4?s=100" width="100px;" alt="Eldad Uzman"/><br /><sub><b>Eldad Uzman</b></sub></a><br /><a href="#ideas-eldaduzman" title="Ideas, Planning, & Feedback">🤔</a></td>
@@ -302,6 +302,7 @@ Supported by [Robocorp](https://robocorp.com/) through [Robot Framework Foundati
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/fabioz"><img src="https://avatars.githubusercontent.com/u/117621?v=4?s=100" width="100px;" alt="Fabio Zadrozny"/><br /><sub><b>Fabio Zadrozny</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Afabioz" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/BCGST"><img src="https://avatars.githubusercontent.com/u/105816460?v=4?s=100" width="100px;" alt="BCGST"/><br /><sub><b>BCGST</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/commits?author=BCGST" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/wvanasten"><img src="https://avatars.githubusercontent.com/u/93996238?v=4?s=100" width="100px;" alt="Wilfried van Asten"/><br /><sub><b>Wilfried van Asten</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Awvanasten" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
