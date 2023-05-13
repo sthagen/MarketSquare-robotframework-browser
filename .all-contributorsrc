@@ -1021,6 +1021,24 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "trybuskrzysztof",
+      "name": "trybuskrzysztof",
+      "avatar_url": "https://avatars.githubusercontent.com/u/27352125?v=4",
+      "profile": "https://github.com/trybuskrzysztof",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Aino1980",
+      "name": "Aino1980",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25761977?v=4",
+      "profile": "https://github.com/Aino1980",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
