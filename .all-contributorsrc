@@ -1048,6 +1048,24 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "Mezohren",
+      "name": "Mezohren",
+      "avatar_url": "https://avatars.githubusercontent.com/u/135019714?v=4",
+      "profile": "https://github.com/Mezohren",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Zoupers",
+      "name": "Zoupers Zou",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29817738?v=4",
+      "profile": "http://zouper.cn",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
