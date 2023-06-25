@@ -288,7 +288,8 @@
       "profile": "https://github.com/leeuwe",
       "contributions": [
         "doc",
-        "ideas"
+        "ideas",
+        "code"
       ]
     },
     {
@@ -1072,6 +1073,15 @@
       "name": "lasselindqvist",
       "avatar_url": "https://avatars.githubusercontent.com/u/13466645?v=4",
       "profile": "https://github.com/lasselindqvist",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "david-ns",
+      "name": "David Nieto Sanz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50212780?v=4",
+      "profile": "https://github.com/david-ns",
       "contributions": [
         "bug"
       ]

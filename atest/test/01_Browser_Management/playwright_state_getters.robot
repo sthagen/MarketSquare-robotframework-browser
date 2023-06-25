@@ -22,6 +22,8 @@ Get Multiple Browsers
     Should Be Equal    ${browsers}    ${expected}
 
 Get Closed Browsers
+    [Tags]    slow
+    [Timeout]    60s
     New Browser    headless=${HEADLESS}
     Close Browser
     ${browsers} =    Get Browser Catalog
@@ -87,7 +89,7 @@ Get Browser Catalog After First Popup Close
     Click    id=first_popup
     Get Browser Catalog    validate    len(value[1]['contexts'][0]['pages']) == 2
     Switch Page    NEW
-    Click    id=close_popup
+    Click    id=close_popup    force=True
     Get Browser Catalog    validate    len(value[1]['contexts'][0]['pages']) == 1
     [Teardown]    Close Browser
 
@@ -100,7 +102,7 @@ Get Browser Catalog After Second Popup Close
     Click    id=first_popup
     Get Browser Catalog    validate    len(value[1]['contexts'][0]['pages']) == 2
     Switch Page    NEW
-    Click    id=second_popup
+    Click    id=second_popup    force=True
     Get Browser Catalog    validate    len(value[1]['contexts'][0]['pages']) == 2
     [Teardown]    Close Browser
 
