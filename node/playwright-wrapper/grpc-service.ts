@@ -364,6 +364,7 @@ export class PlaywrightServer implements IPlaywrightServer {
     uncheckCheckbox = this.wrapping(interaction.uncheckCheckbox);
     getElement = this.wrapping(evaluation.getElement);
     getElements = this.wrapping(evaluation.getElements);
+    getByX = this.wrapping(evaluation.getByX);
     addStyleTag = this.wrappingPage(evaluation.addStyleTag);
     waitForElementsState = this.wrapping(evaluation.waitForElementState);
     waitForRequest = this.wrappingPage(network.waitForRequest);
@@ -388,20 +389,6 @@ export class PlaywrightServer implements IPlaywrightServer {
     waitForDownload = this.wrappingPage(network.waitForDownload);
 
     evaluateJavascript = this.wrappingStatePage(evaluation.evaluateJavascript);
-
-    async executeJavascript(
-        call: ServerUnaryCall<Request.JavascriptCode, Response.JavascriptExecutionResult>,
-        callback: sendUnaryData<Response.JavascriptExecutionResult>,
-    ): Promise<void> {
-        try {
-            const request = call.request;
-            if (request === null) throw Error('No request');
-            const result = await evaluation.executeJavascript(request, this.getState(call), this.getActivePage(call));
-            callback(null, result);
-        } catch (e) {
-            callback(errorResponse(e), null);
-        }
-    }
 
     recordSelector = this.wrapping(evaluation.recordSelector);
 
