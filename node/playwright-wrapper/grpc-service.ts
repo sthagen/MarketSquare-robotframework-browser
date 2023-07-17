@@ -357,7 +357,7 @@ export class PlaywrightServer implements IPlaywrightServer {
     clearText = this.wrapping(interaction.clearText);
     press = this.wrapping(interaction.press);
     click = this.wrapping(interaction.click);
-    tab = this.wrapping(interaction.tab);
+    tap = this.wrapping(interaction.tap);
     hover = this.wrapping(interaction.hover);
     focus = this.wrapping(interaction.focus);
     checkCheckbox = this.wrapping(interaction.checkCheckbox);
@@ -391,18 +391,6 @@ export class PlaywrightServer implements IPlaywrightServer {
     evaluateJavascript = this.wrappingStatePage(evaluation.evaluateJavascript);
 
     recordSelector = this.wrapping(evaluation.recordSelector);
-
-    async getPageState(
-        call: ServerUnaryCall<Request.Empty, Response.JavascriptExecutionResult>,
-        callback: sendUnaryData<Response.JavascriptExecutionResult>,
-    ): Promise<void> {
-        try {
-            const result = await evaluation.getPageState(this.getActivePage(call));
-            callback(null, result);
-        } catch (e) {
-            callback(errorResponse(e), null);
-        }
-    }
 
     async health(
         call: ServerUnaryCall<Request.Empty, Response.String>,

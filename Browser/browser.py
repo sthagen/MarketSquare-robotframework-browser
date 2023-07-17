@@ -21,7 +21,7 @@ import types
 from concurrent.futures._base import Future
 from datetime import timedelta
 from pathlib import Path
-from typing import Any, ClassVar, Dict, List, Optional, Pattern, Set, Union
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Pattern, Set, Union
 
 from assertionengine import AssertionOperator, Formatter
 from overrides import overrides
@@ -727,7 +727,7 @@ class Browser(DynamicCore):
     ROBOT_LISTENER_API_VERSION = 2
     ROBOT_LIBRARY_LISTENER: "Browser"
     ROBOT_LIBRARY_SCOPE = "GLOBAL"
-    ERROR_AUGMENTATION: ClassVar[Pattern[str]] = {
+    ERROR_AUGMENTATION: ClassVar[Dict[Pattern[str], Callable[[Any], str]]] = {
         re.compile(r"Timeout .+ exceeded."): lambda msg: (
             f'{msg}\nTip: Use "Set Browser Timeout" for increasing the timeout or '
             "double check your locator as the targeted element(s) couldn't be found."
@@ -813,8 +813,6 @@ class Browser(DynamicCore):
             for js_ext in jsextensions:
                 libraries.append(self._create_lib_component_from_jsextension(js_ext))
         if plugins:
-            if isinstance(plugins, list):
-                plugins = ",".join(plugins)
             parser = PluginParser(LibraryComponent, [self])
             parsed_plugins = parser.parse_plugins(plugins)
             libraries.extend(parsed_plugins)
@@ -1301,5 +1299,6 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
         elif name == "set_assertion_formatters":
             doc = doc.replace('"Keyword Name"', '"Get Text"')
             doc = f"{doc}\n    | ${{value}} =    `Get Text`    //div    ==    ${{SPACE}}Expected${{SPACE * 2}}Text"
-            doc = f"{doc}\n    | Should Be Equal    ${{value}}    Expected Text\n"
+            doc = f"{doc}\n    | Should Be Equal    ${{value}}    Expected Text\n\n"
+            doc = f"{doc}\n[https://forum.robotframework.org/t//4327|Comment >>]"
         return doc

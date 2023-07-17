@@ -69,7 +69,7 @@ async function findLocatorNotStrict(activePage: Page, selector: string, firstOnl
     }
 }
 
-export async function invokeOnMouse<T>(
+export async function invokeOnMouse(
     page: Page | undefined,
     methodName: 'move' | 'down' | 'up' | 'click' | 'dblclick',
     args: Record<any, any>,
@@ -81,7 +81,7 @@ export async function invokeOnMouse<T>(
     return await fn(...Object.values(args));
 }
 
-export async function invokeOnKeyboard<T>(
+export async function invokeOnKeyboard(
     page: Page,
     methodName: 'down' | 'up' | 'press' | 'insertText' | 'type',
     ...args: any[]
@@ -96,7 +96,7 @@ export async function invokeOnKeyboard<T>(
 /*
  * If obj is not trueish call callback with new Error containing message
  */
-export function exists<T1, T2>(obj: T1, message: string): asserts obj is NonNullable<T1> {
+export function exists<T1>(obj: T1, message: string): asserts obj is NonNullable<T1> {
     if (!obj) {
         throw new Error(message);
     }

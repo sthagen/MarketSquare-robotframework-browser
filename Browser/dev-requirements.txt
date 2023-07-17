@@ -1,23 +1,23 @@
 invoke >= 2.1.1
 pytest >= 7.3.1
 pytest-watch >= 4.2.0
-black >= 23.3.0
-mypy >= 1.3.0
+black >= 23.7.0
+mypy >= 1.4.1
 mypy-protobuf >= 3.4.0
-ruff>=0.0.275
+ruff>=0.0.278
 wheel>=0.40.0
 robotframework-pabot >= 2.16.0
 twine >= 4.0.2
 robotstatuschecker >= 3.0.1
 rellu >= 0.7
-approvaltests == 8.3.1
+approvaltests == 8.4.1
 pytest-mock==3.11.1
 Pillow==10.0.0
 # Required for injecting google analytics tags on release
 beautifulsoup4 >= 4.12.2
 psutil >= 5.9.4
 coverage >= 7.2.3
-robotframework-tidy >= 4.2.1
+robotframework-tidy >= 4.4.0
 python-dateutil >= 2.8.2
 robotframework-crypto >= 0.3.0
 # Include normal dependencies from requirements.txt. Makes it possible to use

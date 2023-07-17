@@ -82,17 +82,15 @@ message Request {
 
   message Context {
     string rawOptions = 1;
-    bool hideRfBrowser = 2;
-    int32 defaultTimeout = 3;
-    string traceFile = 4;
+    int32 defaultTimeout = 2;
+    string traceFile = 3;
   }
 
   message PersistentContext {
     string browser = 1;
     string rawOptions = 2;
-    bool hideRfBrowser = 3;
-    int32 defaultTimeout = 4;
-    string traceFile = 5;
+    int32 defaultTimeout = 3;
+    string traceFile = 4;
   }
 
   message Permissions {
@@ -404,8 +402,8 @@ service  Playwright {
   rpc Download(Request.Url) returns (Response.Json);
   /* Clicks element specified by selector and options */
   rpc Click(Request.ElementSelectorWithOptions) returns (Response.Empty);
-  /* Tabs element specified by selector and options */
-  rpc Tab(Request.ElementSelectorWithOptions) returns (Response.Empty);
+  /* Taps element specified by selector and options */
+  rpc Tap(Request.ElementSelectorWithOptions) returns (Response.Empty);
   /* Hovers an element specified by selector and options */
   rpc Hover(Request.ElementSelectorWithOptions) returns (Response.Empty);
   /* Focuses element specified by selector */
@@ -419,7 +417,6 @@ service  Playwright {
 
   rpc RecordSelector(Request.Label) returns (Response.JavascriptExecutionResult);
   /* Get Page State JSON */
-  rpc GetPageState(Request.Empty) returns (Response.JavascriptExecutionResult);
   rpc SetViewportSize(Request.Viewport) returns (Response.Empty);
   /* Gets an elements computed style */
   rpc GetStyle(Request.ElementStyle) returns (Response.Json);

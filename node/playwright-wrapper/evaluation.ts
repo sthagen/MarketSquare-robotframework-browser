@@ -30,13 +30,6 @@ import { exists, findLocator } from './playwright-invoke';
 import { pino } from 'pino';
 const logger = pino({ timestamp: pino.stdTimeFunctions.isoTime });
 
-declare global {
-    interface Window {
-        __SET_RFBROWSER_STATE__: <T>(a: T) => T;
-        __RFBROWSER__: any;
-    }
-}
-
 /** Resolve an Locator, create global UUID for it, and store the reference
  * in global state. Enables using special selector syntax `element=<uuid>` in
  * RF keywords.
@@ -255,11 +248,6 @@ export async function evaluateJavascript(
     return jsResponse((await getJSResult()) as string, 'JavaScript executed successfully.');
 }
 
-export async function getPageState(page: Page): Promise<Response.JavascriptExecutionResult> {
-    const result = await page.evaluate(() => window.__RFBROWSER__);
-    return jsResponse(result, 'Page state evaluated successfully.');
-}
-
 export async function waitForElementState(
     request: Request.ElementSelectorWithOptions,
     pwState: PlaywrightState,
@@ -437,6 +425,13 @@ export async function highlightElements(
     return intResponse(count, `Highlighted ${count} elements for ${duration}.`);
 }
 
+type EvaluationOptions = {
+    dur: number;
+    wdt: string;
+    stl: string;
+    clr: string;
+};
+
 async function highlightAll(
     selector: string,
     duration: number,
@@ -456,7 +451,7 @@ async function highlightAll(
     }
     logger.info(`Locator count is ${count}`);
     await locator.evaluateAll(
-        (elements: Array<Element>, options: any) => {
+        (elements: Array<Element>, options: EvaluationOptions) => {
             elements.forEach((e: Element) => {
                 const d = document.createElement('div');
                 d.className = 'robotframework-browser-highlight';
@@ -470,9 +465,12 @@ async function highlightAll(
                 d.style.height = `${rect.height}px`;
                 d.style.border = `${options?.wdt ?? '1px'} ${options?.stl ?? `dotted`} ${options?.clr ?? `blue`}`;
                 document.body.appendChild(d);
-                setTimeout(() => {
-                    d.remove();
-                }, options?.dur ?? 5000);
+                setTimeout(
+                    () => {
+                        d.remove();
+                    },
+                    options?.dur ?? 5000,
+                );
             });
         },
         { dur: duration, wdt: width, stl: style, clr: color },
