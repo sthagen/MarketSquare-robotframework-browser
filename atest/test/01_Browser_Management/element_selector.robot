@@ -1,7 +1,6 @@
 *** Settings ***
 Documentation       Tests for Get Element and `element=<ref>` selector syntax
 
-Library             RobotDebug
 Resource            imports.resource
 
 Suite Setup         Ensure Open Page
@@ -116,6 +115,14 @@ Get Element By Role
     Set Strict Mode    False
     ${e} =    Get Element By Role    role=textbox
     Get Text    ${e}    ==    Prefilled Name
+
+Get Element By Role In Frame
+    Go To    ${FRAMES_URL}
+    TRY
+        Get Element By Role    textbox    name=right >>> name=searchbutton
+    EXCEPT    TimeoutError*    type=GLOB
+        Log    Correct error.
+    END
 
 Get Element By - AltText
     ${e} =    Get Element By    AltText    Logo

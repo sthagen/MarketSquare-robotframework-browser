@@ -1113,6 +1113,42 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "antonmedv",
+      "name": "Anton Medvedev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/141232?v=4",
+      "profile": "https://medv.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "martamedovova-ext91522",
+      "name": "martamedovova-ext91522",
+      "avatar_url": "https://avatars.githubusercontent.com/u/130643867?v=4",
+      "profile": "https://github.com/martamedovova-ext91522",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "DirkRichter",
+      "name": "Dr. Dirk Richter",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20930315?v=4",
+      "profile": "https://github.com/DirkRichter",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "RatexMak",
+      "name": "RatexMak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33491425?v=4",
+      "profile": "https://github.com/RatexMak",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,

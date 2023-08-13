@@ -320,8 +320,17 @@ class RecordHar(TypedDict, total=False):
     path: str
 
 
-class HttpCredentials(TypedDict):
+class _HttpCredentials(TypedDict):
+    username: str
+    password: str
+
+
+class HttpCredentials(_HttpCredentials, total=False):
     """Sets the credentials for http basic-auth.
+
+    ``origin``:
+    Restrain sending http credentials on specific origin (scheme://host:port).
+    Credentials for HTTP authentication. If no origin is specified, the username and password are sent to any servers upon unauthorized responses.
 
     Can be defined as robot dictionary or as string literal. Does not reveal secrets
     in Robot Framework logs. Instead, username and password values are resolved internally.
@@ -347,8 +356,7 @@ class HttpCredentials(TypedDict):
 
     """
 
-    username: str
-    password: str
+    origin: str
 
 
 class _GeoCoordinated(TypedDict):
@@ -886,3 +894,15 @@ class Scope(Enum):
     Suite = auto()
     Test = auto()
     Task = Test
+
+
+class ServiceWorkersPermissions(Enum):
+    """Whether to allow sites to register Service workers.
+
+    ``allow``: Service Workers can be registered.
+
+    ``block``: Playwright will block all registration of Service Workers.
+    """
+
+    allow = auto()
+    block = auto()
