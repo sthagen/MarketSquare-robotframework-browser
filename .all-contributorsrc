@@ -1003,7 +1003,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/93996238?v=4",
       "profile": "https://github.com/wvanasten",
       "contributions": [
-        "bug"
+        "bug",
+        "code"
       ]
     },
     {
@@ -1148,6 +1149,15 @@
       "profile": "https://github.com/RatexMak",
       "contributions": [
         "ideas"
+      ]
+    },
+    {
+      "login": "horzuff",
+      "name": "horzuff",
+      "avatar_url": "https://avatars.githubusercontent.com/u/63282033?v=4",
+      "profile": "https://github.com/horzuff",
+      "contributions": [
+        "code"
       ]
     }
   ],
