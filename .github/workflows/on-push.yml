@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [ "ubuntu-latest", "windows-latest" ]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Use Node.js
       uses: actions/setup-node@v3
       with:
@@ -29,6 +29,7 @@ jobs:
         PLAYWRIGHT_BROWSERS_PATH: 0
       run: |
         npm ci
+        npx playwright install --with-deps
     - name: Set up Python 3.9
       uses: actions/setup-python@v4
       with:
@@ -120,7 +121,7 @@ jobs:
             node-version: 16.x
             shard: 3
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Use Node.js
       uses: actions/setup-node@v3
       with:
@@ -131,6 +132,7 @@ jobs:
         PLAYWRIGHT_BROWSERS_PATH: 0
       run: |
         npm ci
+        npx playwright install --with-deps
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
@@ -233,7 +235,7 @@ jobs:
           - os: windows-latest
             node-version: 16.x
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download package for install testing
         uses: actions/download-artifact@v3
         with:

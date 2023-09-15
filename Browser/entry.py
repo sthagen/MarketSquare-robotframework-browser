@@ -39,7 +39,7 @@ INSTALL_LOG = CURRENT_FOLDER / log_file
 try:
     INSTALL_LOG.touch(exist_ok=True)
 except Exception as error:
-    print(f"Cound not wwrite to {INSTALL_LOG}, got error: {error}")  # noqa: T201
+    print(f"Could not write to {INSTALL_LOG}, got error: {error}")  # noqa: T201
     INSTALL_LOG = Path.cwd() / log_file
     print(f"Writing install log to: {INSTALL_LOG}")  # noqa: T201
 
@@ -52,13 +52,6 @@ logging.basicConfig(
         ),
         logging.StreamHandler(sys.stdout),
     ],
-)
-IS_PYTHON_37 = (sys.version_info.major, sys.version_info.minor) == (3, 7)
-PYTHON_37_EOL = (
-    "The end of life for Python 3.7 was 2023-06-27.\n"
-    "Support for Python 3.7 has been deprecated and\n"
-    "will be removed in version 16.4 of Robot Framework Browser.\n"
-    "Users are strongly recommended to upgrade to a version supported by the Python community."
 )
 
 
@@ -73,18 +66,18 @@ def rfbrowser_init(skip_browser_install: bool, silent_mode: bool):
     try:
         _rfbrowser_init(skip_browser_install, silent_mode)
         _write_marker(silent_mode)
-    except Exception as error:
+    except Exception as err:
         _write_marker(silent_mode)
         logging.info(traceback.format_exc())
         _python_info()
         _node_info()
         _log_install_dir()
-        raise error
+        raise err
 
 
 def _log_install_dir():
     logging.info(
-        f"Installation directory `{INSTALLATION_DIR!s}` does not contain the required files for."
+        f"Installation directory `{INSTALLATION_DIR!s}` does not contain the required files for. "
         "unknown reason. Investigate the npm output and fix possible problems."
         "\nPrinting contents:\n"
     )
@@ -124,11 +117,11 @@ def _walk_install_dir():
     lines = []
     for root, _dirs, files in os.walk(INSTALLATION_DIR):
         level = root.replace(INSTALLATION_DIR.__str__(), "").count(os.sep)
-        indent = " " * 4 * (level)
+        indent = " " * 4 * level
         lines.append(f"{indent}{Path(root).name}/\n")
-        subindent = " " * 4 * (level + 1)
+        sub_indent = " " * 4 * (level + 1)
         for file in files:
-            lines.append(f"{subindent}{file}\n")
+            lines.append(f"{sub_indent}{file}\n")
     return lines
 
 
@@ -165,6 +158,22 @@ def _log(message: str, silent_mode: bool = False):
     logging.info(message)
 
 
+def _process_poller(process: Popen, silent_mode: bool):
+    while process.poll() is None:
+        if process.stdout:
+            output = process.stdout.readline().decode("UTF-8")
+            try:
+                _log(output, silent_mode)
+            except Exception as err:
+                logging.info(f"While writing log file, got error: {err}")
+
+    if process.returncode != 0:
+        raise RuntimeError(
+            "Problem installing node dependencies."
+            f"Node process returned with exit status {process.returncode}"
+        )
+
+
 def _rfbrowser_init(skip_browser_install: bool, silent_mode: bool):
     _log("Installing node dependencies...", silent_mode)
     _check_files_and_access()
@@ -182,23 +191,19 @@ def _rfbrowser_init(skip_browser_install: bool, silent_mode: bool):
         stdout=PIPE,
         stderr=STDOUT,
     )
+    _process_poller(process, silent_mode)
 
-    while process.poll() is None:
-        if process.stdout:
-            output = process.stdout.readline().decode("UTF-8")
-            try:
-                _log(output, silent_mode)
-            except Exception as error:
-                logging.info(f"While writing log file, got error: {error}")
-
-    if process.returncode != 0:
-        raise RuntimeError(
-            "Problem installing node dependencies."
-            f"Node process returned with exit status {process.returncode}"
+    if not skip_browser_install:
+        _log(f"Installing browser binaries to {INSTALLATION_DIR}", silent_mode)
+        process = Popen(
+            "npx --quiet playwright install --with-deps",
+            shell=True,
+            cwd=INSTALLATION_DIR,
+            stdout=PIPE,
+            stderr=STDOUT,
         )
+        _process_poller(process, silent_mode)
     _log("rfbrowser init completed", silent_mode)
-    if IS_PYTHON_37:
-        logging.warning(PYTHON_37_EOL)
 
 
 def rfbrowser_clean_node():
@@ -282,13 +287,13 @@ def main():
     parser.add_argument(
         "command",
         help=(
-            "Possible commands are:\ninit\nclean-node\nshow-trace\nversion\n\ninit command will install the required node "
-            "dependencies. init command is needed when library is installed or updated.\n\nclean-node is used to delete"
-            "node side dependencies and installed browser binaries from the library default installation location. "
-            "When upgrading browser library, it is recommended to clean old node side binaries after upgrading the "
-            "Python side. Example:\n1) pip install -U robotframework-browser\n2) rfbrowser clean-node\n3)rfbrowser "
-            "init.\nRun rfbrowser clean-node command also before uninstalling the library with pip. This makes sure "
-            "that playwright browser binaries are not left in the disk after the pip uninstall command."
+            "Possible commands are:\ninit\nclean-node\nshow-trace\nversion\n\ninit command will install the required "
+            "node dependencies. init command is needed when library is installed or updated.\n\nclean-node is used to "
+            "delete node side dependencies and installed browser binaries from the library default installation "
+            "location. When upgrading browser library, it is recommended to clean old node side binaries after "
+            "upgrading the Python side. Example:\n1) pip install -U robotframework-browser\n2) rfbrowser clean-node\n"
+            "3)rfbrowser init.\nRun rfbrowser clean-node command also before uninstalling the library with pip. This "
+            "makes sure that playwright browser binaries are not left in the disk after the pip uninstall command."
             "\n\nshow-trace command will start the Playwright trace viewer tool.\n\nversion command displays the "
             "installed Browser library, Robot Framework and Playwright versions.\n\nSee the each command argument "
             "group for more details what (optional) arguments that command supports."
