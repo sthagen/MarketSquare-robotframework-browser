@@ -619,7 +619,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/13176540?v=4",
       "profile": "https://github.com/Massukio",
       "contributions": [
-        "bug"
+        "bug",
+        "ideas"
       ]
     },
     {
@@ -1211,6 +1212,15 @@
       "name": "terckert",
       "avatar_url": "https://avatars.githubusercontent.com/u/57592522?v=4",
       "profile": "https://github.com/terckert",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "mbondarew",
+      "name": "Maksim Bondarew",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6174054?v=4",
+      "profile": "http://mbondarew.dev",
       "contributions": [
         "bug"
       ]
