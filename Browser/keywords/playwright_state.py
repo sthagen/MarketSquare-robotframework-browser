@@ -22,7 +22,14 @@ from uuid import uuid4
 from assertionengine import AssertionOperator, verify_assertion
 from robot.utils import get_link_path
 
-from Browser.utils.data_types import Deprecated, ServiceWorkersPermissions, deprecated
+from Browser.utils.data_types import (
+    Deprecated,
+    DownloadInfo,
+    PageLoadStates,
+    ServiceWorkersPermissions,
+    deprecated,
+)
+from Browser.utils.misc import get_download_id
 
 from ..assertion_engine import assertion_formatter_used, with_assertion_polling
 from ..base import LibraryComponent
@@ -374,7 +381,7 @@ class PlaywrightState(LibraryComponent):
         | ``channel`` | Allows to operate against the stock Google Chrome and Microsoft Edge browsers. For more details see: [https://playwright.dev/docs/browsers#google-chrome--microsoft-edge|Playwright documentation]. |
         | ``chromiumSandbox`` | Enable Chromium sandboxing. Defaults to False. |
         | ``devtools`` | Chromium-only Whether to auto-open a Developer Tools panel for each tab. |
-        | ``downloadsPath`` | If specified, accepted downloads are downloaded into this folder. Otherwise, temporary folder is created and is deleted when browser is closed. Regarding file deletion, see the docs of ``Download`` and ``Promise To Wait For Download``. |
+        | ``downloadsPath`` | If specified, accepted downloads are downloaded into this folder. Otherwise, temporary folder is created and is deleted when browser is closed. Regarding file deletion, see the docs of `Download` and `Promise To Wait For Download`. |
         | ``env`` | Specifies environment variables that will be visible to the browser. Dictionary keys are variable names, values are the content. Defaults to None. |
         | ``executablePath`` | Path to a browser executable to run instead of the bundled one. If executablePath is a relative path, then it is resolved relative to current working directory. Note that Playwright only works with the bundled Chromium, Firefox or WebKit, use at your own risk. Defaults to None. |
         | ``firefoxUserPrefs`` |Firefox user preferences. Learn more about the Firefox user preferences at [https://support.mozilla.org/en-US/kb/about-config-editor-firefox|about:config]. |
@@ -647,7 +654,7 @@ class PlaywrightState(LibraryComponent):
             logger.info(context_options)
 
             if url:
-                stub.GoTo(Request().Url(url=url))
+                stub.GoTo(Request().UrlOptions(url=Request().Url(url=url)))
             self.context_cache.add(response.id, self._get_video_size(params))
             video_path = self._embed_video(json.loads(response.video))
             return (
@@ -739,14 +746,20 @@ class PlaywrightState(LibraryComponent):
         return {"width": 1280, "height": 720}
 
     @keyword(tags=("Setter", "BrowserControl"))
-    def new_page(self, url: Optional[str] = None) -> NewPageDetails:
+    def new_page(
+        self,
+        url: Optional[str] = None,
+        wait_until: PageLoadStates = PageLoadStates.load,
+    ) -> NewPageDetails:
         """Open a new Page.
 
         A Page is the Playwright equivalent to a tab. See `Browser, Context and Page`
         for more information about Page concept.
 
-        | =Arguments= | =Description= |
-        | url         | Optional URL to navigate the page to. The url should include protocol, e.g. `https://` |
+        | =Arguments=    | =Description= |
+        | ``url``        | Optional URL to navigate the page to. The url should include protocol, e.g. `https://` |
+        | ``wait_until`` | When to consider operation succeeded, defaults to load. Events can be either: ``domcontentloaded`` - consider operation to be finished when the DOMContentLoaded event is fired. ``load`` - consider operation to be finished when the load event is fired. ``networkidle`` - consider operation to be finished when there are no network connections for at least 500 ms. ``commit`` - consider operation to be finished when network response is received and the document started loading. |
+
 
         Returns `NewPageDetails` as dictionary for created page.
         `NewPageDetails` (dict) contains the keys ``page_id`` and ``video_path``. ``page_id`` is a stable identifier for
@@ -763,7 +776,12 @@ class PlaywrightState(LibraryComponent):
                 # '' will be treated as falsy on .ts side.
                 # TODO: Use optional url field instead once it stabilizes at upstream
                 # https://stackoverflow.com/a/62566052
-                Request().Url(url=(url or ""), defaultTimeout=int(self.timeout))
+                Request().UrlOptions(
+                    url=Request().Url(
+                        url=(url or ""), defaultTimeout=int(self.timeout)
+                    ),
+                    waitUntil=wait_until.name,
+                )
             )
         logger.info(response.log)
         if response.newBrowser:
@@ -1419,3 +1437,17 @@ class PlaywrightState(LibraryComponent):
         with self.playwright.grpc_channel() as stub:
             response = stub.SetPeerId(Request().Index(index=new_id))
             return response.body
+
+    @keyword(tags=("Setter", "BrowserControl"))
+    def cancel_download(self, download: Union[DownloadInfo, str]):
+        """Cancels an active download.
+
+        | =Arguments= | =Description= |
+        | download    | A `DownloadInfo` object or id of the download to be canceled. |
+
+        """
+        with self.playwright.grpc_channel() as stub:
+            response = stub.CancelDownload(
+                Request().DownloadID(id=get_download_id(download))
+            )
+            logger.info(response.log)
