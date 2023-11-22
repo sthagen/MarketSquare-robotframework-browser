@@ -789,7 +789,7 @@ class Browser(DynamicCore):
         self.scope_stack: Dict = {}
         self.suite_ids: Dict[str, None] = {}
         self.current_test_id: Optional[str] = None
-        self._playwright_state = PlaywrightState(self)
+        self._playwright_state: PlaywrightState = PlaywrightState(self)
         self._browser_control = Control(self)
         self._assertion_formatter = Formatter(self)
         libraries = [
@@ -1276,6 +1276,7 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
                 if (
                     self.run_on_failure_keyword.name == "take_screenshot"
                     and not varargs
+                    and "filename" not in kwargs
                 ):
                     varargs = (self._failure_screenshot_path(),)
                 self.keywords[self.run_on_failure_keyword.name](*varargs, **kwargs)
