@@ -194,9 +194,10 @@ Screenshot With Omit Background
     [Teardown]    Remove File    ${path}
 
 Screenshot Returns Base64 And Path
+    New Page    ${ELEMENT_STATE_URL}
     ${path} =    Take Screenshot    return_as=path
     ${base64} =    Take Screenshot    return_as=base64
-    Type Text    id=username_field    Hello
+    Type Text    [name="enabled_input"]    Hello
     ${base64_diff} =    Take Screenshot    return_as=base64
     Should Be True    isinstance($path, pathlib.Path)
     ${bytes} =    Evaluate    base64.b64decode($base64)
@@ -211,9 +212,10 @@ Screenshot Returns Base64 And Path
     END
 
 Screenshot Returns Bytes And Path String
+    New Page    ${ELEMENT_STATE_URL}
     ${path} =    Take Screenshot    return_as=path_string
     ${bytes} =    Take Screenshot    return_as=bytes
-    Type Text    id=username_field    Hello
+    Type Text    [name="enabled_input"]    Hello
     ${bytes_diff} =    Take Screenshot    return_as=bytes
     Should Be True    isinstance($path, str)
     Should Be True    isinstance($bytes, bytes)

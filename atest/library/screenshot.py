@@ -31,4 +31,7 @@ def compare_images(img1_path: str, img2_bytes: bytes):
             f'src="data:image/png;base64,{img_str}" width="900px">',
             html=True,
         )
-    assert diff.getbbox() is None
+    box = diff.getbbox()
+    if box:
+        logger.warn(f"box: {box}, type({type(box)}), but no idea why this fails.")
+    assert box is None
