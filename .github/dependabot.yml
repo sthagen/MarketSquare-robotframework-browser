@@ -2,6 +2,15 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    groups:
+      eslint_build:
+        patterns:
+        - "esbuild"
+        - "esbuild-node-externals"
+      grpc:
+        patterns:
+        - "grpcio"
+        - "grpcio-tools"
     schedule:
       interval: "daily"
 
