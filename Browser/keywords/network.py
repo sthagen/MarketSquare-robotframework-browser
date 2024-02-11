@@ -239,7 +239,14 @@ class Network(LibraryComponent):
 
     @keyword(tags=("Wait", "HTTP"))
     def wait_until_network_is_idle(self, timeout: Optional[timedelta] = None):
-        """Waits until there has been at least one instance of 500 ms of no network traffic on the page after loading.
+        """*DEPRECATED!!* Use `Wait For Load State` instead.
+
+        If you have:
+        | `Wait Until Network Is Idle`    timeout=3s
+        then chnnage it to:
+        | `Wait For Load State`    networkidle    timeout=3s
+
+        Waits until there has been at least one instance of 500 ms of no network traffic on the page after loading.
 
         Doesn't wait for network traffic that wasn't initiated within 500ms of page load.
 
@@ -252,11 +259,7 @@ class Network(LibraryComponent):
 
         [https://forum.robotframework.org/t//4350|Comment >>]
         """
-        with self.playwright.grpc_channel() as stub:
-            response = stub.WaitUntilNetworkIsIdle(
-                Request().Timeout(timeout=self.get_timeout(timeout))
-            )
-            logger.debug(response.log)
+        self.library.wait_for_load_state(PageLoadStates.networkidle, timeout)
 
     @keyword(tags=("Wait", "HTTP"))
     def wait_for_navigation(
