@@ -1,6 +1,6 @@
 # robotframework-browser
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-140-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-141-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Version](https://img.shields.io/pypi/v/robotframework-browser.svg)](https://pypi.python.org/pypi/robotframework-browser)
 [![Actions Status](https://github.com/MarketSquare/robotframework-browser/workflows/Continuous%20integration/badge.svg)](https://github.com/MarketSquare/robotframework-browser/actions)
@@ -44,7 +44,7 @@ To upgrade your already installed robotframework-browser library
 
 ## Uninstall instructions
 
-To completely install library, including the browser binaries installed by Playwright,
+To completely uninstall library, including the browser binaries installed by Playwright,
 run following commands:
 1. Clean old node side dependencies and browser binaries: `rfbrowser clean-node`
 2. Uninstall with pip: `pip uninstall robotframework-browser`
@@ -345,6 +345,9 @@ Supported by [Robocorp](https://robocorp.com/) through [Robot Framework Foundati
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/masudparvez"><img src="https://avatars.githubusercontent.com/u/3022096?v=4?s=100" width="100px;" alt="masudparvez"/><br /><sub><b>masudparvez</b></sub></a><br /><a href="#ideas-masudparvez" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/gitkatsi"><img src="https://avatars.githubusercontent.com/u/30192727?v=4?s=100" width="100px;" alt="gitkatsi"/><br /><sub><b>gitkatsi</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Agitkatsi" title="Bug reports">🐛</a> <a href="https://github.com/MarketSquare/robotframework-browser/commits?author=gitkatsi" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/manykarim"><img src="https://avatars.githubusercontent.com/u/61293164?v=4?s=100" width="100px;" alt="Many Kasiriha"/><br /><sub><b>Many Kasiriha</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Amanykarim" title="Bug reports">🐛</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/thulasiraju"><img src="https://avatars.githubusercontent.com/u/21201594?v=4?s=100" width="100px;" alt="Thulasi Raju"/><br /><sub><b>Thulasi Raju</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/commits?author=thulasiraju" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
