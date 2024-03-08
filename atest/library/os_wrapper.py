@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 from datetime import timedelta
 from pathlib import Path
@@ -42,3 +44,11 @@ def glob_files(path: str) -> list:
 def glob_files_count(path: str) -> int:
     """Returns files count path.glob(**/*)."""
     return len(glob_files(path))
+
+
+def get_enty_command() -> str:
+    """Return correct entry point command."""
+    if bool(int(os.environ.get("SYS_VAR_CI_INSTALL_TEST", 0))):
+        return "rfbrowser"
+    entry_py = Path(__file__).parent.parent.parent / "Browser" / "entry.py"
+    return f"{sys.executable} {entry_py.resolve()}"

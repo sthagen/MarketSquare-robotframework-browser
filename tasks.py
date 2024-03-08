@@ -331,6 +331,7 @@ def atest(
         args.extend(["--variable", "SUFFIX:framing.html?url="])
         args.extend(["--variable", "SELECTOR_PREFIX:id=iframe_id >>>"])
         args.extend(["--exclude", "no-iframe"])
+    args.extend(["--exclude", "tidy-transformer"])
     ATEST_OUTPUT.mkdir(parents=True, exist_ok=True)
 
     background_process, port = spawn_node_process(ATEST_OUTPUT / "playwright-log.txt")
@@ -433,6 +434,12 @@ def atest_robot(c, zip=None, smoke=False):
         smoke: If true, runs only tests that take less than 500ms.
     """
     os.environ["ROBOT_SYSLOG_FILE"] = str(ATEST_OUTPUT / "syslog.txt")
+    sys_var_ci = int(os.environ.get("SYS_VAR_CI_INSTALL_TEST", 0))
+    sys_var_cmd = (
+        "SYS_VAR_CI_INSTALL_TEST:True"
+        if sys_var_ci
+        else "SYS_VAR_CI_INSTALL_TEST:False"
+    )
     command_args = (
         [sys.executable, "-m", "robot", "--exclude", "not-implemented"]
         + (["--exclude", "slow"] if smoke else [])
@@ -445,6 +452,8 @@ def atest_robot(c, zip=None, smoke=False):
             "NONE",
             "--xunit",
             "robot_xunit.xml",
+            "--variable",
+            sys_var_cmd,
             "--outputdir",
             str(ATEST_OUTPUT),
         ]
@@ -495,6 +504,8 @@ def run_tests(c, tests):
             "robot_xunit.xml",
             "--loglevel",
             "DEBUG",
+            "--exclude",
+            "tidy-transformer",
             "-d",
             "outs",
             tests,
@@ -518,7 +529,7 @@ def atest_coverage(c):
 
     robot_args = {
         "xunit": "robot_xunit.xml",
-        "exclude": "not-implemented",
+        "exclude": "not-implementedORtidy-transformer",
         "loglevel": "DEBUG",
         "outputdir": str(ATEST_OUTPUT),
     }
@@ -579,6 +590,7 @@ def _add_skips(default_args, include_mac=False):
     ):
         print("Running in Mac exclude no-mac-support tags")
         default_args.extend(["--exclude", "no-mac-support"])
+    default_args.extend(["--exclude", "tidy-transformer"])
     return default_args
 
 
