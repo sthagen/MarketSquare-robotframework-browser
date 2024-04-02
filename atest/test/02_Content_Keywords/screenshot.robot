@@ -1,7 +1,7 @@
 *** Settings ***
 Resource        imports.resource
 
-Test Setup      New Page    ${LOGIN_URL}
+Test Setup      Screenshot Timeout
 
 *** Variables ***
 ${TestScreenshot} =     ${OUTPUT_DIR}${/}test_screenshot
@@ -106,14 +106,14 @@ Screenshot Filename Incrementation
 
 Embed ScreenShot To Log.html File
     [Documentation]
-    ...    LOG 1:4    STARTS: </td></tr><tr><td colspan="3"><img alt="screenshot" src="data:image/png;base64
+    ...    LOG 1:4    STARTS: </td></tr><tr><td colspan="3"><img alt="screenshot" class="robot-seleniumlibrary-screenshot" src="data:image/png;base64
     ${path} =    Take Screenshot    EMBED
     Should Not Exist    ${OUTPUT_DIR}/EMBED*
     Should Be Equal    ${path}    EMBED
 
 Embed Element Picture To Log.html File
     [Documentation]
-    ...    LOG 1:*    STARTS: </td></tr><tr><td colspan="3"><img alt="screenshot" src="data:image/png;base64
+    ...    LOG 1:*    STARTS: </td></tr><tr><td colspan="3"><img alt="screenshot" class="robot-seleniumlibrary-screenshot" src="data:image/png;base64
     ${path} =    Take Screenshot    EMbeD    selector=\#username_field
     Should Not Exist    ${OUTPUT_DIR}/EM??D*
     Should Be Equal    ${path}    EMBED
@@ -227,3 +227,8 @@ Screenshot Returns Bytes And Path String
     EXCEPT    AssertionError
         Log    correct error
     END
+
+*** Keywords ***
+Screenshot Timeout
+    Set Browser Timeout    1s
+    New Page    ${LOGIN_URL}
