@@ -1,6 +1,6 @@
 # robotframework-browser
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-143-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-144-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Version](https://img.shields.io/pypi/v/robotframework-browser.svg)](https://pypi.python.org/pypi/robotframework-browser)
 [![Actions Status](https://github.com/MarketSquare/robotframework-browser/workflows/Continuous%20integration/badge.svg)](https://github.com/MarketSquare/robotframework-browser/actions)
@@ -40,8 +40,8 @@ Starting from release 18.3.0 Browser library has optional dependency with
 [Robotidy](https://robotidy.readthedocs.io/en/stable/). Install library with Robotidy, run install with:
 `pip install robotframework-browser[tidy]`. Starting from 18.3.0 release, library will provide external
 Robotidy [transformer](https://robotidy.readthedocs.io/en/stable/external_transformers.html). Transformer provided
-by Browser library can be run with command: `rfbrowser transform --trasformer-name /path/to/tests`. Exmaple:
-`rfbrowser ransform --wait-until-network-is-idle /path/to/tests` would transform deprecated `Wait Until Network Is Idle`
+by Browser library can be run with command: `rfbrowser transform --transformer-name /path/to/tests`. Example:
+`rfbrowser transform --wait-until-network-is-idle /path/to/tests` would transform deprecated `Wait Until Network Is Idle`
 keyword to `Wait For Load State` keyword. To see full list of transformers provided by Browser library, run
 command: `rfbrowser transform --help`.
 
@@ -361,6 +361,7 @@ Supported by [Robocorp](https://robocorp.com/) through [Robot Framework Foundati
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/thulasiraju"><img src="https://avatars.githubusercontent.com/u/21201594?v=4?s=100" width="100px;" alt="Thulasi Raju"/><br /><sub><b>Thulasi Raju</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/commits?author=thulasiraju" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://iliketomatoes.com/"><img src="https://avatars.githubusercontent.com/u/2039028?v=4?s=100" width="100px;" alt="Giancarlo Soverini"/><br /><sub><b>Giancarlo Soverini</b></sub></a><br /><a href="#ideas-iliketomatoes" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/lennartq"><img src="https://avatars.githubusercontent.com/u/22813828?v=4?s=100" width="100px;" alt="lennartq"/><br /><sub><b>lennartq</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/commits?author=lennartq" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/falcon030"><img src="https://avatars.githubusercontent.com/u/30448651?v=4?s=100" width="100px;" alt="Lukas Boekenoogen"/><br /><sub><b>Lukas Boekenoogen</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/commits?author=falcon030" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>

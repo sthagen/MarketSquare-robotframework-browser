@@ -24,7 +24,7 @@ install_requires = open(os.path.join("Browser", "requirements.txt")).readlines()
 
 setup_kwargs = {
     "name": "robotframework-browser",
-    "version": "18.2.0",
+    "version": "18.3.0",
     "description": "Robot Framework Browser library powered by Playwright. Aiming for speed, reliability and visibility.",
     "long_description": long_description,
     "long_description_content_type": "text/markdown",
@@ -34,7 +34,9 @@ setup_kwargs = {
     "maintainer_email": None,
     "url": "https://github.com/MarketSquare/robotframework-browser",
     "packages": packages,
+    "package_dir": {"": "."},
     "package_data": package_data,
+    "include_package_data": True,
     "install_requires": install_requires,
     "extras_require": {
         "tidy": ["robotframework-tidy>=4.9.0"]
