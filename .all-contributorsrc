@@ -1344,6 +1344,24 @@
         "bug",
         "doc"
       ]
+    },
+    {
+      "login": "siongwai",
+      "name": "siongwai",
+      "avatar_url": "https://avatars.githubusercontent.com/u/112995767?v=4",
+      "profile": "https://github.com/siongwai",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "nfaustin",
+      "name": "nfaustin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3782948?v=4",
+      "profile": "https://github.com/nfaustin",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
