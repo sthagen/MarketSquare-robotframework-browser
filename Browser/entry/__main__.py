@@ -1,5 +1,4 @@
 import contextlib
-import inspect
 import json
 import logging
 import os
@@ -14,20 +13,21 @@ from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional
 
 import click
-from robot import version as rf_version  # type: ignore
+
+from .translation import compare_translatoin, get_library_translaton
 
 if TYPE_CHECKING:
-    from .browser import Browser
+    from ..browser import Browser
 
-INSTALLATION_DIR = Path(__file__).parent / "wrapper"
+INSTALLATION_DIR = Path(__file__).parent.parent / "wrapper"
 NODE_MODULES = INSTALLATION_DIR / "node_modules"
-TIDY_TRANSFORMER_DIR = Path(__file__).parent / "tidy_transformer"
+TIDY_TRANSFORMER_DIR = Path(__file__).parent.parent / "tidy_transformer"
 # This is required because weirdly windows doesn't have `npm` in PATH without shell=True.
 # But shell=True breaks our linux CI
 SHELL = bool(platform.platform().startswith("Windows"))
-CURRENT_FOLDER = Path(__file__).resolve().parent
+ROOT_FOLDER = Path(__file__).resolve().parent.parent
 log_file = "rfbrowser.log"
-INSTALL_LOG = CURRENT_FOLDER / log_file
+INSTALL_LOG = ROOT_FOLDER / log_file
 PLAYWRIGHT_BROWSERS_PATH = "PLAYWRIGHT_BROWSERS_PATH"
 try:
     INSTALL_LOG.touch(exist_ok=True)
@@ -214,11 +214,18 @@ def _log_install_dir(error_msg=True):
     _write_marker()
 
 
+def get_rf_version():
+    process = subprocess.run(
+        [sys.executable, "-m", "robot", "--version"], capture_output=True, check=True
+    )
+    return process.stdout.decode("utf-8").split(" ")[2]
+
+
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
     _write_marker()
-    version_file = CURRENT_FOLDER / "version.py"
+    version_file = ROOT_FOLDER / "version.py"
     version_text = version_file.read_text()
     match = re.search(r"\"\d+\.\d+.\d+\"", version_text)
     browser_lib_version = match.group(0) if match else "unknown"
@@ -227,7 +234,7 @@ def print_version(ctx, param, value):
     match = re.search(r"\d+\.\d+\.\d+", package_json_data["dependencies"]["playwright"])
     pw_version = match.group(0) if match else "unknown"
     logging.info(f"Installed Browser library version is: {browser_lib_version}")
-    logging.info(f'Robot Framework version: "{rf_version.VERSION}"')
+    logging.info(f'Robot Framework version: "{get_rf_version()}"')
     logging.info(f'Installed Playwright is: "{pw_version}"')
     _write_marker()
 
@@ -460,7 +467,7 @@ def launch_browser_server(browser, options):
     \b
     Example: re.search(r"ws://.*", console_output).group()
     """
-    from .browser import Browser, SupportedBrowsers
+    from ..browser import Browser, SupportedBrowsers
 
     logging.getLogger().setLevel(logging.INFO)
 
@@ -548,7 +555,7 @@ def transform(path: Path, wait_until_network_is_idle: bool):
 
 @cli.command()
 @click.argument(
-    "filenane",
+    "filename",
     type=click.Path(exists=False, dir_okay=False, path_type=Path),
     required=True,
 )
@@ -564,8 +571,18 @@ def transform(path: Path, wait_until_network_is_idle: bool):
     default=None,
     type=str,
 )
+@click.option(
+    "--compare",
+    help="Compares the translation file sha256 sum to library documentation.",
+    default=False,
+    is_flag=True,
+    show_default=True,
+)
 def translation(
-    filenane: Path, plugings: Optional[str] = None, jsextension: Optional[str] = None
+    filename: Path,
+    plugings: Optional[str] = None,
+    jsextension: Optional[str] = None,
+    compare: bool = False,
 ):
     """Default translation file from library keywords.
 
@@ -583,27 +600,27 @@ def translation(
     The --jsextension argument is same as jsextension argument in the library
     import. If you use jsextension, it is also get default translation json
     file also witht the jsextension keywords included in the library.
-    """
-    from Browser import Browser
 
-    browser = Browser(plugins=plugings, jsextension=jsextension)
-    translation = {}
-    for function in browser.attributes.values():
-        translation[function.__name__] = {
-            "name": function.__name__,
-            "doc": function.__doc__,
-        }
-    translation["__init__"] = {
-        "name": "__init__",
-        "doc": inspect.getdoc(browser),
-    }
-    translation["__intro__"] = {
-        "name": "__intro__",
-        "doc": browser.__doc__,
-    }
-    with filenane.open("w") as file:
-        json.dump(translation, file, indent=4)
-    logging.info(f"Translation file created in {filenane.absolute()}")
+    If the --compare flag is set, then command does not generate template
+    translation file. Then it compares sha256 sums from the filenane
+    to ones read from the library documenentation. It will print out a list
+    of keywords which documentation sha256 does not match. This will ease
+    translation projects to identify keywords which documentation needs updating.
+    """
+    translation = get_library_translaton(plugings, jsextension)
+    if compare:
+        if table := compare_translatoin(filename, translation):
+            logging.info(
+                "Found differences between translation and library, see below for details."
+            )
+            for line in table:
+                logging.info(line)
+        else:
+            logging.info("Translation is valid, no updated needed.")
+    else:
+        with filename.open("w") as file:
+            json.dump(translation, file, indent=4)
+        logging.info(f"Translation file created in {filename.absolute()}")
 
 
 if __name__ == "__main__":
