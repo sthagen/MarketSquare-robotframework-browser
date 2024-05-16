@@ -14,7 +14,7 @@
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.21.0",
-    "esbuild": "^0.21.2",
+    "esbuild": "^0.21.3",
     "esbuild-node-externals": "^1.13.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
@@ -36,7 +36,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.10.7",
+    "@grpc/grpc-js": "^1.10.8",
     "@medv/finder": "^3.2.0",
     "google-protobuf": "3.21.2",
     "pino": "^9.1.0",
