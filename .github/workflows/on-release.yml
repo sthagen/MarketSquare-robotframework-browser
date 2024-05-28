@@ -14,18 +14,17 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 16.x
-      - name: Set up Python 3.8
+          node-version: 20.x
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: 3.12
       - name: Dependencies for building docs # TODO: thin a bit
         run: |
           npm ci
           python -m pip install --upgrade pip
-          pip install uv==0.1.45
-          uv venv
-          uv pip install -r Browser/dev-requirements.txt  --python python3.8
+          pip install uv
+          uv pip install -r Browser/dev-requirements.txt  --python 3.8 --system
           inv build
       - name: Build docs
         run: |
