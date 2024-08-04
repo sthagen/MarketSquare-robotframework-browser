@@ -84,6 +84,20 @@ class Deprecated:
 deprecated = Deprecated()
 
 
+class NotSet(Enum):
+    """Defines a value that is not set.
+
+    This is used to differentiate between a value that is set to None and
+    a value that is not set at all. Example `ForcedColors` has an options
+    active, none and null. If user does not not want to give any of
+    the `ForcedColors` options, user can use `not_set` value. Then keyword
+    will not define `ForcedColors` option at all when underlying Playwright
+    method(s) is called.
+    """
+
+    not_set = "not_set"
+
+
 class SelectOptions(TypedDict):
     """Dictionary with the following keys and their values
     "index", "value", "label" and "selected".
@@ -441,6 +455,75 @@ class _Server(TypedDict):
     server: str
 
 
+class PdfFormat(Enum):
+    """PDF format argument options are
+
+    Letter: 8.5in x 11in
+    Legal: 8.5in x 14in
+    Tabloid: 11in x 17in
+    Ledger: 17in x 11in
+    A0: 33.1in x 46.8in
+    A1: 23.4in x 33.1in
+    A2: 16.54in x 23.4in
+    A3: 11.7in x 16.54in
+    A4: 8.27in x 11.7in
+    A5: 5.83in x 8.27in
+    A6: 4.13in x 5.83in
+    """
+
+    Letter = "Letter"
+    Legal = "Legal"
+    Tabloid = "Tabloid"
+    Ledger = "Ledger"
+    A0 = "A0"
+    A1 = "A1"
+    A2 = "A2"
+    A3 = "A3"
+    A4 = "A4"
+    A5 = "A5"
+    A6 = "A6"
+
+
+class PdfMarging(TypedDict):
+    """Margins of the pdf.
+
+    Top margin, accepts values labeled with units. Defaults to 0px.
+    Right margin, accepts values labeled with units. Defaults to 0px.
+    Bottom margin, accepts values labeled with units. Defaults to 0px.
+    Left margin, accepts values labeled with units. Defaults to 0px.
+    """
+
+    top: str
+    right: str
+    bottom: str
+    left: str
+
+
+class Media(Enum):
+    """Changes the CSS media type of the page.
+
+    The only allowed values are 'screen', 'print' and `null`.
+    Passing null disables CSS media emulation.
+    Using False will not define media argument.
+    """
+
+    screen = "screen"
+    print = "print"
+    null = "null"
+
+
+class ReducedMotion(Enum):
+    """Emulates 'prefers-reduced-motion' media feature.
+
+    Supported values are 'reduce', 'no-preference' and `null`.
+    Passing `null` disables reduced motion emulation.
+    """
+
+    reduce = "reduce"
+    no_preference = "no-preference"
+    null = "null"
+
+
 class Proxy(_Server, total=False):
     """Network proxy settings.
 
@@ -776,8 +859,10 @@ class SupportedBrowsers(Enum):
     webkit = auto()
 
 
-ColorScheme = Enum("ColorScheme", ["dark", "light", "no-preference"])
+ColorScheme = Enum("ColorScheme", ["dark", "light", "no-preference", "null"])
 ColorScheme.__doc__ = """Emulates 'prefers-colors-scheme' media feature.
+        Supported values are 'light', 'dark', 'no-preference' and `null`.
+        Passing `null` disables color scheme emulation.
 
         See [https://playwright.dev/docs/api/class-page?_highlight=emulatemedia#pageemulatemediaparams |emulateMedia(options)]
         for more details.
@@ -993,10 +1078,15 @@ class ReduceMotion(Enum):
 
 
 class ForcedColors(Enum):
-    """Emulates `forced-colors` media feature, supported values are `active`, `none`."""
+    """Emulates 'forced-colors' media feature.
+
+    Supported values are 'active', 'none' and `null`.
+    Passing `null` disables forced colors emulation.
+    """
 
     active = auto()
     none = auto()
+    null = auto()
 
 
 class ConditionInputs(Enum):
