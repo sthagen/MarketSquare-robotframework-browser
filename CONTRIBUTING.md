@@ -62,20 +62,18 @@ Docker container builds a clean install package. This can be used to check that 
 ### Install dependencies
 Ensure generated code and types are up to date with `inv build`
 
-### Create previous version docs
-Set `VERSION=<version>`. Version number should match to the milestone to the 
+### Create current version docs for history
+Set `VERSION=<version>`. Version number should match to the milestone to the
 [issue tracker](https://github.com/MarketSquare/robotframework-browser/milestones)
 
-Checkout previously released tag, generate the keyword documentation from the
-previous release and add the keyword documentation to the repository main branch.
+Generate the keyword documentation with version number and add the keyword documentation
+to the repository main branch.
 
 ```
 export VERSION=<version>
-git describe --tags --abbrev=0 | xargs git checkout
-git describe --tags --abbrev=0 | xargs inv docs -v
-git checkout main
+inv docs -v $VERSION
 git add docs/versions/Browser-*.html
-git commit -m "Add `git describe --tags --abbrev=0` keyword documentation to repository."
+git commit -m "Add $VERSION keyword documentation to repository."
 git push
 ```
 
@@ -88,6 +86,7 @@ inv version $VERSION
 inv build
 git add Browser/version.py package.json package-lock.json setup.py docker/Dockerfile.latest_release
 git commit -m "Updateversion to: $VERSION"
+git push
 ```
 
 ### Generate release notes
@@ -117,8 +116,7 @@ Add, commit and push:
 ```
 git add docs/releasenotes/Browser-$VERSION.rst
 git commit -m "Release notes for $VERSION"
-git tag -fa v$VERSION
-git push --tags --force
+git push
 ```
 Update later if necessary.
 
@@ -129,16 +127,20 @@ Also update Browser libdoc.
 2. [Create Github release](https://github.com/MarketSquare/robotframework-browser/releases/new)
 3. Check that [PyPi](https://pypi.org/project/robotframework-browser/) looks good.
 4. Install package from PyPi and test that it works.
+5. Wait that Docker build is ready and check that [Docker hub](https://hub.docker.com/r/marketsquare/robotframework-browser/tags) looks good.
 
 ### Announce release
-Announce new release, at least in Slack, [Forum](https://forum.robotframework.org/t/browser-library-releases/685)
-and user group mailing list.
+Announce new release, at least in Slack and [Forum](https://forum.robotframework.org/t/browser-library-releases/685).
 
 ## Code style
-Python code style is enforced with flake8 and black. These are executed in a
+Python code style is enforced with ruff, isort and black. These are executed in a
 pre-commit hook, but can also be invoked manually with `inv lint-python`.
 
 JS / TS code style is enforced with eslint. Lints are run in pre-commit hooks, but can be run manually with `inv lint-node`.
+
+Acceptance tests style is enforced with RoboTidy: `int lint-robot`.
+
+To run all linters by one command, use `inv lint`
 
 ## Architecture
 
