@@ -1,6 +1,6 @@
 {
   "name": "robotframework-playwright",
-  "version": "18.7.0",
+  "version": "18.8.0",
   "main": "index.ts",
   "author": "Mikko Korpela <mikko.korpela@gmail.com>",
   "license": "Apache-2.0",
@@ -14,7 +14,7 @@
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.1.0",
     "@typescript-eslint/parser": "^8.1.0",
-    "esbuild": "^0.23.0",
+    "esbuild": "^0.23.1",
     "esbuild-node-externals": "^1.14.0",
     "eslint": "^9.9.0",
     "eslint-config-prettier": "^9.1.0",
