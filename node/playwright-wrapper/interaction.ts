@@ -17,7 +17,7 @@ import { exists } from './playwright-invoke';
 
 import { PlaywrightState } from './playwright-state';
 import { Request, Response } from './generated/playwright_pb';
-import { emptyWithLog, stringResponse } from './response-util';
+import { emptyWithLog } from './response-util';
 import { findLocator, invokeOnKeyboard, invokeOnMouse } from './playwright-invoke';
 import { getSelections } from './getters';
 
@@ -219,20 +219,28 @@ export async function handleAlert(request: Request.AlertAction, page: Page): Pro
     return emptyWithLog('Set event handler for next alert');
 }
 
-export async function waitForAlert(request: Request.AlertAction, page: Page): Promise<Response.String> {
-    const alertAction = request.getAlertaction() as 'accept' | 'dismiss';
-    const promptInput = request.getPromptinput();
-    const timeout = request.getTimeout();
-    const dialogObject = await page.waitForEvent('dialog', { timeout: timeout });
-    const message = dialogObject.message();
-    if (alertAction === 'accept' && promptInput) {
-        dialogObject.accept(promptInput);
-    } else if (alertAction === 'accept') {
-        dialogObject.accept();
-    } else {
-        dialogObject.dismiss();
+export async function waitForAlerts(request: Request.AlertActions, page: Page): Promise<Response.ListString> {
+    const response = new Response.ListString();
+    const alertActions = request.getItemsList();
+    const alertMessages = [];
+    for (let index = 0; index < alertActions.length; index++) {
+        const alertAction = alertActions[index];
+        const promptInput = alertAction.getPromptinput();
+        const timeout = alertAction.getTimeout();
+        const action = alertAction.getAlertaction();
+        logger.info(`Waiting for alert with action: ${action}, promptInput: "${promptInput}" and timeout: ${timeout}`);
+        const dialogObject = await page.waitForEvent('dialog', { timeout: timeout });
+        alertMessages.push(dialogObject.message());
+        if (action === 'accept' && promptInput) {
+            dialogObject.accept(promptInput);
+        } else if (alertAction.getAlertaction() === 'accept') {
+            dialogObject.accept();
+        } else {
+            dialogObject.dismiss();
+        }
     }
-    return stringResponse(message, 'Next alert was handeled successfully.');
+    response.setItemsList(alertMessages);
+    return response;
 }
 
 export async function mouseButton(request: Request.MouseButtonOptions, page?: Page): Promise<Response.Empty> {

@@ -892,22 +892,91 @@ class Interaction(LibraryComponent):
 
         [https://forum.robotframework.org/t//4343|Comment >>]
         """
-        with self.playwright.grpc_channel() as stub:
-            response = stub.WaitForAlert(
-                Request().AlertAction(
-                    alertAction=action.name,
-                    promptInput=prompt_input,
-                    timeout=self.get_timeout(timeout),
-                )
-            )
-        logger.debug(response.log)
+        received_text = self.wait_for_alerts([action], [prompt_input], [None], timeout)
+        received_text = received_text[0] if received_text else ""
         if text is not None:
             assert (
-                text == response.body
-            ), f'Alert text was: "{response.body}" but it should have been: "{text}"'
+                text == received_text
+            ), f'Alert text was: "{received_text}" but it should have been: "{text}"'
         else:
             logger.debug("Not verifying alter text.")
-        return response.body
+        return received_text
+
+    @keyword(tags=("Wait", "PageContent"))
+    def wait_for_alerts(
+        self,
+        actions: list[DialogAction],
+        prompt_inputs: list[Union[None, str]],
+        texts: list[Union[None, str]],
+        timeout: Optional[timedelta] = None,
+    ) -> list[str]:
+        """Returns a promise to wait for multiple dialog on a page.
+
+        Handles each alert/dialog with ``actions`` and optionally verifies the dialogs texts.
+        Dialog/alert can be any of alert, beforeunload, confirm or prompt.
+
+        | =Arguments= | =Description= |
+        | ``actions`` | List of how to handle the alerts. Can be ``accept`` or ``dismiss``. |
+        | ``prompt_inputs`` | List of the values to enter into prompt. Only valid if ``action`` argument equals ``accept``. Defaults to empty string. IF input not preset, use None |
+        | ``texts`` | List of optional text to verify the dialogs text. Use None if text verification should be disabled. |
+        | ``timeout`` | Optional timeout in Robot Framework time format. |
+
+        There must be equal amount of items in ``actions``, ``prompt_inputs`` and ``texts``  lists.
+        Use None if texts and/or prompt_inputs are not needed.
+
+        This keyword works in same way as `Wait For Alert` but can handle multiple alerts
+        with one promise. Lie `Wait For Alert` keyword, this keyword must be called as
+        argument to `Promise To` keyword.
+
+        Example to handle two alerts, first one is accepted and second one is dismissed:
+
+        | ${promise} =    Promise To
+        | ...    Wait For Alerts
+        | ...    ["accept", "dismiss"]
+        | ...    [None, None]
+        | ...    [None, None]
+        | Click    id=alerts
+        | ${texts} =    Wait For    ${promise}
+
+        Example to handle confirm and prompt alert. Examople assumes that the fisrt is a
+        confirm and second one is prompt:
+
+        | ${promise} =    Promise To
+        | ...    Wait For Alerts
+        | ...    ["dismiss", "accept"]
+        | ...    [None, "I am a prompt"]
+        | ...    ["First alert accepted?", None]
+        | Click    id=confirmAndPromt
+        | ${texts} =    Wait For    ${promise}
+
+        [https://forum.robotframework.org/t/7887|Comment >>]
+        """
+        if not len(actions) == len(prompt_inputs) == len(texts):
+            raise ValueError(
+                "There was not equal amount of items in actions, prompt_inputs and texts lists. "
+                f"actions: {len(actions)}, prompt_inputs: {len(prompt_inputs)}, texts: {len(texts)}"
+            )
+        lib_default_or_timeout = self.get_timeout(timeout)
+        alert_actions = Request().AlertActions()
+        for action, prompt_input in zip(actions, prompt_inputs):
+            alert_action = Request().AlertAction()
+            alert_action.alertAction = action.name
+            alert_action.promptInput = prompt_input or ""
+            alert_action.timeout = lib_default_or_timeout
+            alert_actions.items.append(alert_action)
+        with self.playwright.grpc_channel() as stub:
+            response = stub.WaitForAlerts(alert_actions)
+            logger.debug(response.items)
+        index = 1
+        for expected_text, received_text in zip(texts, response.items):
+            if expected_text is None:
+                index += 1
+                continue
+            assert (
+                expected_text == received_text
+            ), f'Alert index {index} text was: "{received_text}" but it should have been: "{expected_text}"'
+            index += 1
+        return response.items
 
     @keyword(tags=("Setter", "PageContent"))
     def mouse_button(
