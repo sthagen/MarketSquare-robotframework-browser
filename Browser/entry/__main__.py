@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING, Optional
 import click
 import seedir  # type: ignore
 
+from .transform import trasform
 from .translation import compare_translatoin, get_library_translaton
 
 if TYPE_CHECKING:
@@ -36,7 +37,6 @@ if TYPE_CHECKING:
 
 INSTALLATION_DIR = Path(__file__).parent.parent / "wrapper"
 NODE_MODULES = INSTALLATION_DIR / "node_modules"
-TIDY_TRANSFORMER_DIR = Path(__file__).parent.parent / "tidy_transformer"
 # This is required because weirdly windows doesn't have `npm` in PATH without shell=True.
 # But shell=True breaks our linux CI
 SHELL = bool(platform.platform().startswith("Windows"))
@@ -570,13 +570,7 @@ def transform(path: Path, wait_until_network_is_idle: bool):
     if not wait_until_network_is_idle:
         logging.info("No transformer defined, exiting.")
         return
-    cmd = ["robotidy"]
-    if wait_until_network_is_idle:
-        wait_until_network_is_idle_file = TIDY_TRANSFORMER_DIR / "network_idle.py"
-        cmd.append("--transform")
-        cmd.append(str(wait_until_network_is_idle_file))
-    cmd.extend([str(item) for item in path])  # type: ignore
-    subprocess.run(cmd, check=False)
+    trasform(path, wait_until_network_is_idle)
 
 
 @cli.command()

@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import json
+import sys
+from collections.abc import Generator
 from datetime import timedelta
 from os import PathLike
 from pathlib import Path
@@ -31,6 +33,7 @@ from ..utils.data_types import (
     BoundingBox,
     Coordinates,
     DialogAction,
+    FileUploadBuffer,
     KeyAction,
     KeyboardInputAction,
     KeyboardModifier,
@@ -1325,31 +1328,121 @@ class Interaction(LibraryComponent):
             logger.debug(response.log)
 
     @keyword(tags=("Setter", "PageContent"))
-    def upload_file_by_selector(self, selector: str, path: PathLike):
-        """Uploads file from `path` to file input element matched by selector.
+    def upload_file_by_selector(
+        self,
+        selector: str,
+        path: Union[PathLike, FileUploadBuffer],
+        *extra_paths: PathLike,
+    ):
+        """Uploads file from ``path`` to file input element matched by selector.
 
         Fails if upload is not done before library timeout.
         Therefor it may be necessary to increase the timeout with `Set Browser Timeout`.
+        It is possible to upload multiple files or folder by defining additional paths
+        or folders. in `extra_paths`.
+
+        If path is a directory, it will be uploaded all files from the directory.
+        Subdirections are not included. It is possible to upload files and directories
+        with the same keyword.
 
         | =Arguments= | =Description= |
         | ``selector`` | Identifies the file input element. |
-        | ``path`` | Path to the file to be uploaded. |
+        | ``path`` | Path to the file or folder to be uploaded. Path can  FileUploadBuffer dictionary |
+        | ``extra_paths`` | Additional paths to files or folders to be uploaded. |
 
-        Example:
+        if ``path`` is  `FileUploadBuffer` dictionary, then structure should be:
+        | {
+        |   'name': `str`,
+        |   'mimeType': `str`,
+        |   'buffer': `str`
+        | }
+
+        If ``path`` argument is `FileUploadBuffer`, then ``extra_paths`` argument is not supported and
+        using it will raise an error.
+
+        Upload single file example:
         | `Upload File By Selector`    //input[@type='file']    big_file.zip
+
+        Upload many files example:
+        | `Upload File By Selector`    //input[@type='file']    file1.zip    file2.zip    file3.zip
+
+        Upload folder example:
+        | `Upload File By Selector`    //input[@type='file']    /path/to/folder
+
+        Upload as buffer example:
+        | ${text} =    Get File    /path/to/file    # Read file from disk
+        | VAR    &{buffer}    name=not_here.txt    mimeType=text/plain    buffer=${text}    # Create buffer dictionary
+        | `Upload File By Selector`    id=file_chooser    ${buffer}    # Upload buffer
 
         [https://forum.robotframework.org/t//4341|Comment >>]
         """
         selector = self.resolve_selector(selector)
-        p = Path(path)
-        if not p.is_file():
-            raise ValueError(f"Nonexistent input file path '{p.resolve()}'")
+        if isinstance(path, PathLike):
+            files = self._get_files(path, *extra_paths)
+            name = ""
+            mimeType = ""
+            buffer = ""
+        else:
+            if extra_paths:
+                raise ValueError(
+                    "Extra paths are not supported when using FileUploadBuffer as path."
+                )
+            files = []
+            name = path["name"]
+            mimeType = path["mimeType"]
+            buffer = path["buffer"]
         with self.playwright.grpc_channel() as stub:
             response = stub.UploadFileBySelector(
-                Request().FileBySelector(
-                    path=str(p.resolve()),
-                    selector=selector,
-                    strict=self.strict_mode,
-                )
+                _get_file_by_selectors(
+                    files, selector, self.strict_mode, name, mimeType, buffer
+                ),
             )
             logger.debug(response.log)
+
+    def _get_files(
+        self,
+        path: PathLike,
+        *extra_paths: PathLike,
+    ) -> list:
+        result_paths = []
+        all_paths = [path, *list(extra_paths)]
+        for item in all_paths:
+            path_object = Path(item).resolve()
+            if path_object.is_file():
+                result_paths.extend([str(path_object)])
+            elif path_object.is_dir():
+                files = [
+                    str(file.resolve())
+                    for file in path_object.iterdir()
+                    if file.is_file()
+                ]
+                result_paths.extend(files)
+            else:
+                raise ValueError(f"Nonexistent input file path '{path_object}'")
+        logger.debug(f"Uploading files: {result_paths}")
+        return result_paths
+
+
+def _get_file_by_selectors(
+    path: list, selector: str, strict: bool, name: str, mimeType: str, buffer: str
+) -> Generator[Request.FileBySelector, None, None]:
+    grpc_max_zize = 4000000
+    if sys.getsizeof(buffer) > grpc_max_zize:
+        for index in range(0, len(buffer), grpc_max_zize):
+            yield Request().FileBySelector(
+                selector=selector,
+                strict=strict,
+                path=path,
+                name=name,
+                mimeType=mimeType,
+                buffer=buffer[index : index + grpc_max_zize],
+            )
+    else:
+        yield Request().FileBySelector(
+            selector=selector,
+            strict=strict,
+            path=path,
+            name=name,
+            mimeType=mimeType,
+            buffer=buffer,
+        )

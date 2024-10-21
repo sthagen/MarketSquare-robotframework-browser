@@ -74,9 +74,12 @@ message Request {
     string path = 1;
   }
   message FileBySelector {
-    string path = 1;
+    repeated string path = 1;
     string selector = 2;
     bool strict = 3;
+    string name = 4;
+    string mimeType = 5;
+    string buffer = 6;
   }
 
   message Json {
@@ -505,7 +508,7 @@ service  Playwright {
   rpc GetTableCellIndex(Request.ElementSelector) returns (Response.Int);
 
   rpc UploadFile(Request.FilePath) returns (Response.Empty);
-  rpc UploadFileBySelector(Request.FileBySelector) returns (Response.Empty);
+  rpc UploadFileBySelector(stream Request.FileBySelector) returns (Response.Empty);
 
   rpc ScrollToElement(Request.ElementSelector) returns (Response.Empty);
   rpc SetOffline(Request.Bool) returns (Response.Empty);
