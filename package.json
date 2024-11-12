@@ -11,8 +11,8 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/strip-comments": "^2.0.4",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.13.0",
-    "@typescript-eslint/parser": "^8.13.0",
+    "@typescript-eslint/eslint-plugin": "^8.14.0",
+    "@typescript-eslint/parser": "^8.14.0",
     "esbuild": "^0.24.0",
     "esbuild-node-externals": "^1.15.0",
     "eslint": "^9.14.0",
@@ -41,7 +41,7 @@
     "pino": "^9.5.0",
     "playwright": "^1.48.2",
     "strip-comments": "^2.0.1",
-    "uuid": "^11.0.2"
+    "uuid": "^11.0.3"
   },
   "scripts": {
     "build-test-app": "node ./node/build.testapp.js",
