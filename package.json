@@ -14,7 +14,7 @@
     "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/parser": "^8.18.1",
     "esbuild": "^0.24.0",
-    "esbuild-node-externals": "^1.15.0",
+    "esbuild-node-externals": "^1.16.0",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -35,10 +35,10 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.12.4",
+    "@grpc/grpc-js": "^1.12.5",
     "@medv/finder": "^4.0.2",
     "google-protobuf": "3.21.4",
-    "monocart-coverage-reports": "^2.11.4",
+    "monocart-coverage-reports": "^2.11.5",
     "pino": "^9.5.0",
     "playwright": "^1.49.1",
     "strip-comments": "^2.0.1",
