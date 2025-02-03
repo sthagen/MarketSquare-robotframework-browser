@@ -471,7 +471,7 @@ def atest_robot(c, zip=None, smoke=False):
     process.wait(ATEST_TIMEOUT)
     output_xml = str(ATEST_OUTPUT / "output.xml")
     print(f"Process {output_xml}")
-    robotstatuschecker.process_output(output_xml, verbose=False)
+    robotstatuschecker.process_output(output_xml)
     rc = rebot_cli(["--outputdir", str(ATEST_OUTPUT), output_xml], exit=False)
     if zip:
         _clean_zip_dir()
@@ -580,7 +580,7 @@ def _run_pabot(extra_args=None, shard=None, include_mac=False):
     process.wait(ATEST_TIMEOUT)
     output_xml = str(ATEST_OUTPUT / "output.xml")
     print(f"Process {output_xml}")
-    robotstatuschecker.process_output(output_xml, verbose=False)
+    robotstatuschecker.process_output(output_xml)
     rc = rebot_cli(["--outputdir", str(ATEST_OUTPUT), output_xml], exit=False)
     print(f"DONE rc=({rc})")
     return rc
