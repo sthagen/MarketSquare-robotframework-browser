@@ -338,7 +338,8 @@
       "contributions": [
         "bug",
         "doc",
-        "ideas"
+        "ideas",
+        "code"
       ]
     },
     {
@@ -1589,6 +1590,15 @@
       "name": "Alexander Vey",
       "avatar_url": "https://avatars.githubusercontent.com/u/122285?v=4",
       "profile": "https://github.com/Way",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "brazdauskasv",
+      "name": "Vaclovas Brazdauskas",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17760245?v=4",
+      "profile": "https://github.com/brazdauskasv",
       "contributions": [
         "bug"
       ]
