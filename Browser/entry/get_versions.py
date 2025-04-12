@@ -31,12 +31,16 @@ def get_pw_version() -> str:
         ["npm", "list", "playwright"],
         capture_output=True,
         check=False,
+        shell=True,
         cwd=INSTALLATION_DIR,
     )
     std_out = process.stdout.decode("utf-8")
-    match = re.search(r"\@\d+\.\d+\.?\d*$", std_out)
+    match = re.search(r"((?:@[^@]*))$", std_out)
+
     if match:
-        return match.group(0)
+        version_string = match.group(0)
+        version_string = version_string.replace("@", "")
+        return version_string.replace("\r", "").replace("\n", "")
     log(
         f"Could not get Playwright version, got: {std_out}, reading it from package.json"
     )
