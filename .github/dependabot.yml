@@ -10,7 +10,7 @@ updates:
         - "@typescript-eslint*"
 
   - package-ecosystem: "pip"
-    directory: "/Browser"
+    directory: "/pyproject.toml"
     schedule:
       interval: "daily"
     groups:
