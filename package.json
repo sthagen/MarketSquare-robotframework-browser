@@ -15,7 +15,7 @@
     "@typescript-eslint/parser": "^8.41.0",
     "esbuild": "^0.25.9",
     "esbuild-node-externals": "^1.18.0",
-    "eslint": "^9.34.0",
+    "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
@@ -39,10 +39,10 @@
     "@medv/finder": "^4.0.2",
     "google-protobuf": "4.0.0",
     "monocart-coverage-reports": "^2.12.6",
-    "pino": "^9.9.2",
+    "pino": "^9.9.4",
     "playwright": "^1.55.0",
     "strip-comments": "^2.0.1",
-    "uuid": "^11.1.0"
+    "uuid": "^12.0.0"
   },
   "scripts": {
     "build-test-app": "node ./node/build.testapp.js",
