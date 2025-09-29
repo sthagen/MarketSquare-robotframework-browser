@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 from robot.api import logger
 from robot.libraries.BuiltIn import BuiltIn
 
-from Browser.utils import find_free_port, FormatterKeywords
+from Browser.utils import FormatterKeywords, close_process_tree, find_free_port
 
 SERVERS: Dict = {}
 
@@ -83,20 +83,8 @@ def start_test_https_server(
 def stop_test_server(port: str):
     global SERVERS
     if port in SERVERS:
-        p = SERVERS[port]
-        if p.poll() is not None:
-            logger.warn(f"process has already exited")
-        else:
-            p.terminate()
-        try:
-            p.wait(timeout=5)
-        except:
-            logger.warn(f"process did not finish in time, killing")
-            p.kill()
-        outs = p.communicate(timeout=5)
-        if p.returncode is not None and p.returncode != 0:
-            logger.warn(f"Process exited with code {p.returncode}, output follows")
-            logger.warn(outs)
+        p: Popen = SERVERS[port]
+        close_process_tree(p)
         del SERVERS[port]
     else:
         logger.warn(f"Server with port {port} not found")

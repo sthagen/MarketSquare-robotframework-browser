@@ -22,6 +22,8 @@ from io import TextIOWrapper
 from pathlib import Path
 from typing import Any, Union
 
+import psutil  # type: ignore[import-untyped]
+from robot.api import logger
 from robot.libraries.BuiltIn import BuiltIn
 
 from Browser.entry.constant import PLAYWRIGHT_BROWSERS_PATH
@@ -144,3 +146,35 @@ def suppress_logging():
         yield
     finally:
         BuiltIn()._context.output.set_log_level(log_level)
+
+
+def close_process_tree(proc: psutil.Popen, timeout=3):
+    """Close a process and all it's child-processes.
+
+    Does nothing if the process is already closed.
+    Warns if at least 1 process remains alive after timeout (seconds) has passed.
+    """
+    try:
+        parent = psutil.Process(proc.pid)
+    except psutil.NoSuchProcess:
+        logger.trace("Process already closed")
+        return
+
+    to_close = parent.children(recursive=True)
+    to_close.append(parent)
+    for p in to_close:
+        logger.trace(f"Closing process <name={p.name()} pid={p.pid}>")
+        with contextlib.suppress(psutil.NoSuchProcess):
+            p.kill()
+    _gone, alive = psutil.wait_procs(
+        to_close,
+        timeout=timeout,
+        callback=lambda p: logger.trace(f"Process {p.pid} closed"),
+    )
+
+    if not alive:
+        logger.trace("Process tree closed")
+        return
+
+    for p in alive:
+        logger.warn(f"Failed to close process. pid={p.pid}")
