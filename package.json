@@ -1,14 +1,14 @@
 {
   "name": "robotframework-playwright",
-  "version": "19.9.0b3",
+  "version": "19.9.0",
   "main": "index.ts",
   "author": "Mikko Korpela <mikko.korpela@gmail.com>",
   "license": "Apache-2.0",
   "bin": "Browser/wrapper/index.js",
   "devDependencies": {
     "@types/express": "^5.0.3",
-    "@types/react": "^19.2.1",
-    "@types/react-dom": "^19.2.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
     "@types/react-router-dom": "^5.3.3",
     "@types/strip-comments": "^2.0.4",
     "@types/uuid": "^11.0.0",
