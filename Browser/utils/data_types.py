@@ -14,7 +14,7 @@
 import re
 from datetime import timedelta
 from enum import Enum, IntFlag, auto
-from typing import Dict, Optional, TypedDict, Union  # noqa: UP035
+from typing import Dict, TypedDict, Union  # noqa: UP035
 
 from robot.running.arguments.typeconverters import TypeConverter
 
@@ -95,6 +95,18 @@ class NotSet(Enum):
     """
 
     not_set = "not_set"
+
+
+class AriaSnapshotReturnType(Enum):
+    """Defines the return type of the AriaSnapshot.
+
+    | =Value=  | =Description= |
+    | ``dict`` | returns the snapshot as a dictionary. |
+    | ``yaml`` | returns the snapshot as a yaml string. |
+    """
+
+    dict = auto()
+    yaml = auto()
 
 
 class KeywordCallStackEntry(TypedDict):
@@ -303,8 +315,8 @@ class ElementRole(Enum):
 class DelayedKeyword:
     def __init__(
         self,
-        name: Union[str, None],
-        original_name: Union[str, None],
+        name: str | None,
+        original_name: str | None,
         args: tuple,
         kwargs: dict,
     ):
@@ -564,7 +576,7 @@ class DownloadInfo(TypedDict):
     saveAs: str
     suggestedFilename: str
     state: str
-    downloadID: Optional[str]
+    downloadID: str | None
 
 
 class NewPageDetails(TypedDict):
@@ -667,7 +679,7 @@ FormatingRules.__doc__ = """Enum that defines the available formatters.
 
 # Use Dict instead of dict for setting documenation
 FormatterTypes = Dict[  # noqa: UP006
-    FormatterKeywords, list[Union[FormatingRules, LambdaFunction]]
+    FormatterKeywords, list[FormatingRules | LambdaFunction]
 ]
 FormatterTypes.__doc__ = """Dictionary that defines the formatters for keywords.
 
@@ -685,7 +697,7 @@ Example as literal:
 def ensure_formatter_type(input_dict: dict):
     formatter_type = {}
     for formatter_keyword, rules in input_dict.items():
-        formatter_rules: list[Union[FormatingRules, LambdaFunction]] = []
+        formatter_rules: list[FormatingRules | LambdaFunction] = []
         for rule in rules:
             if isinstance(rule, FormatingRules) or callable(rule):
                 formatter_rules.append(rule)

@@ -72,7 +72,7 @@ from previous release with pip_, run
    rfbrowser init
 Alternatively you can download the source distribution from PyPI_ and
 install it manually. Browser library {version} was released on {date}.
-Browser supports Python 3.9+, Node 20/22/24 LTS and Robot Framework 5.0+.
+Browser supports Python 3.10+, Node 20/22/24 LTS and Robot Framework 5.0+.
 Library was tested with Playwright REPLACE_PW_VERSION
 
 .. _Robot Framework: http://robotframework.org
@@ -241,11 +241,19 @@ def _node_protobuf_gen(c):
     c.run(cmd)
 
 
+def _gen_stub(c: Context):
+    shutil.rmtree("mypy_stub/", ignore_errors=True)
+    Path("Browser/browser.pyi").unlink(missing_ok=True)
+    c.run("stubgen --output mypy_stub Browser")
+    c.run("python -m Browser.gen_stub")
+
+
 @task(protobuf)
-def node_build(c):
+def node_build(c: Context):
     c.run("npm run build")
     shutil.rmtree(WRAPPER_DIR / "static", ignore_errors=True)
     shutil.copytree(node_dir / "playwright-wrapper" / "static", WRAPPER_DIR / "static")
+    _gen_stub(c)
 
 
 @task
@@ -254,8 +262,8 @@ def create_test_app(c):
 
 
 @task(deps, protobuf, node_build, create_test_app)
-def build(c):
-    c.run("python -m Browser.gen_stub")
+def build(c: Context):
+    _gen_stub(c)
 
 
 def _os_platform() -> str:
