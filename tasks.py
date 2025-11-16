@@ -14,7 +14,6 @@ from pathlib import Path, PurePath
 
 from invoke import Exit, task
 from invoke.context import Context
-import uv
 
 try:
     import bs4
@@ -116,7 +115,13 @@ def deps(c, system=False, force=False, uv=False):
     Args:
         system: When set, installs packages to system Python instead of user.
         force: When set, installs dependencies even there is no changes.
+        uv: When set, skips pip install step assuming uv is already installed.
     """
+    try:
+        c.run("pip --version", hide=True)
+    except Exception as error:
+        if "Encountered a bad command exit code" in str(error):
+            uv = True
     if uv:
         print("No pip install.")
     else:
@@ -715,29 +720,32 @@ def lint_robot(c):
     print(f"Lint Robot files {'in ci' if in_ci else ''}")
     atest_folder = Path("atest/").resolve()
     config_file = Path("pyproject.toml").resolve()
-    base_commnd = ["robotidy", "--config", str(config_file)]
+    cmd = [
+        "robocop",
+        "format",
+        "--config",
+        str(config_file),
+    ]
     if IN_CI:
-        base_commnd.insert(1, "--check")
-        base_commnd.insert(1, "--diff")
-    cmd = base_commnd.copy()
+        cmd.insert(2, "--check")
+        cmd.insert(3, "--diff")
+    atest_11_tidy_transformer = atest_folder.joinpath(
+        "test", "11_tidy_transformer", "network_idle_file.robot"
+    )
+    atest_resrouces = list(atest_folder.joinpath("test").glob("*.resource"))
     cmd.extend(
         [
-            "--extend-exclude",
-            '"(11_tidy_transformer\\Snetwork_idle_file\\.robot)|(test\\Skeywords\\.resource)"',
+            "--exclude",
+            str(atest_11_tidy_transformer),
+            "--exclude",
+            str(atest_resrouces[0]),
+            "--exclude",
+            str(atest_resrouces[1]),
             str(atest_folder),
         ]
     )
     print(cmd)
     c.run(" ".join(cmd))
-    # keywords.resource needs resource to be imported before library, but generally
-    # that should be avoided.
-    base_commnd.insert(1, "--configure")
-    base_commnd.insert(
-        2, "OrderSettingsSection:imports_order=resource,library,variables"
-    )
-    base_commnd.append(str(atest_folder.joinpath("test", "keywords.resource")))
-    print(base_commnd)
-    c.run(" ".join(base_commnd))
 
 
 @task(lint_python, lint_node, lint_robot)
