@@ -6,12 +6,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "robotframework-browser"
-version = "19.11.0"
+version = "19.12.0"
 dependencies = [
     "grpcio == 1.76.0",
     "grpcio-tools == 1.76.0",
     "protobuf == 6.33.1",
-    "robotframework >= 5.1.1, < 9.0.0",
+    "robotframework >= 6.1.1, < 9.0.0",
     "robotframework-pythonlibcore >= 4.4.1, < 5.0.0",
     "robotframework-assertion-engine >= 3.0.3, < 4.0.0",
     "wrapt >= 2.0.1",
@@ -161,4 +161,21 @@ configure = [
     "NormalizeNewLines.section_lines=1",
     "RenameKeywords.enabled=True",
     "RenameTestCases.capitalize_each_word=True:enabled=True",
+]
+
+[tool.robocop.lint]
+ignore = [
+    "missing-doc-test-case",
+    "missing-doc-suite",
+    "missing-doc-keyword",
+    "missing-doc-resource-file",
+    "replace-set-variable-with-var", # Enable when RF 7.0 is minimum version
+    "no-suite-variable", # Enable when RF 7.0 is minimum version
+    "replace-create-with-var", # Enable when RF 7.0 is minimum version
+    "too-many-calls-in-test-case",
+    "too-long-test-case",
+    "line-too-long",
+]
+configure = [
+    "empty-lines-between-sections.empty_lines=1"
 ]
