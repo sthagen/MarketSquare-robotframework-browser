@@ -77,6 +77,19 @@ Docker container builds a clean install package. This can be used to check that 
 ### Install dependencies
 Ensure generated code and types are up to date with `inv build`
 
+### Set version number
+Run `inv version $VERSION` to update the version information to both Python
+and Node components.
+
+```
+export VERSION=<version>
+inv version $VERSION
+inv build
+git add Browser/version.py browser_batteries/pyproject.toml package.json package-lock.json pyproject.toml docker/Dockerfile.latest_release
+git commit -m "Update version to: $VERSION"
+git push
+```
+
 ### Create current version docs for history
 Set `VERSION=<version>`. Version number should match to the milestone to the
 [issue tracker](https://github.com/MarketSquare/robotframework-browser/milestones)
@@ -85,22 +98,9 @@ Generate the keyword documentation with version number and add the keyword docum
 to the repository main branch.
 
 ```
-export VERSION=<version>
 inv docs -v $VERSION
 git add docs/versions/Browser-*.html
 git commit -m "Add $VERSION keyword documentation to repository."
-git push
-```
-
-### Set version number
-Run `inv version $VERSION` to update the version information to both Python
-and Node components.
-
-```
-inv version $VERSION
-inv build
-git add Browser/version.py browser_batteries/pyproject.toml package.json package-lock.json pyproject.toml docker/Dockerfile.latest_release
-git commit -m "Update version to: $VERSION"
 git push
 ```
 
@@ -129,7 +129,7 @@ notes. This allows re-generating the list of issues later if more issues are add
 
 Add, commit and push:
 ```
-git add docs/releasenotes/Browser-$VERSION.rst
+git add docs/releasenotes/Browser-$VERSION.md
 git commit -m "Release notes for $VERSION"
 git push
 ```
