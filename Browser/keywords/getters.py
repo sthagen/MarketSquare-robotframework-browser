@@ -167,10 +167,12 @@ class Getters(LibraryComponent):
 
         [https://forum.robotframework.org/t//4275|Comment >>]
         """
+        body_parts: list[str] = []
         with self.playwright.grpc_channel() as stub:
-            response = stub.GetPageSource(Request().Empty())
-            logger.debug(response.log)
-            value = json.loads(response.body)
+            for response in stub.GetPageSource(Request().Empty()):
+                body_parts.append(response.bodyPart)
+                logger.debug(response.log)
+            value = json.loads("".join(body_parts))
             formatter = self.get_assertion_formatter("Get Page Source")
             return verify_assertion(
                 value,

@@ -1065,11 +1065,20 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
         responses = stub.CallExtensionKeyword(
             Request().KeywordCall(name="{name}", arguments=json.dumps(_args_browser_internal))
         )
+        body_parts: list[str] = []
+        last_json = ""
         for response in responses:
             logger.info(response.log)
-        if response.json == "":
+            if response.bodyPart:
+                body_parts.append(response.bodyPart)
+            if response.json:
+                last_json = response.json
+        if body_parts:
+            body = "".join(body_parts)
+            return json.loads(body)
+        if not last_json:
             return
-        return json.loads(response.json)
+        return json.loads(last_json)
 """
         try:
             exec(
@@ -1103,11 +1112,20 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
                     name=keyword_name, arguments=json.dumps(_args_browser_internal)
                 )
             )
+            body_parts: list[str] = []
+            last_json = ""
             for response in responses:
                 logger.info(response.log)
-            if response.json == "":
+                if response.bodyPart:
+                    body_parts.append(response.bodyPart)
+                if response.json:
+                    last_json = response.json
+            if body_parts:
+                body = "".join(body_parts)
+                return json.loads(body)
+            if not last_json:
                 return None
-            return json.loads(response.json)
+            return json.loads(last_json)
 
     @property
     def outputdir(self) -> str:
