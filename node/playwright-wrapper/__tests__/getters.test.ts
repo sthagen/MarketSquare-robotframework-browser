@@ -50,10 +50,7 @@ const state = {
 };
 
 function makeRequest(selector = '#el', strict = false) {
-    return {
-        getSelector: () => selector,
-        getStrict: () => strict,
-    } as any;
+    return { selector, strict } as any;
 }
 
 function makeMockState() {
@@ -106,7 +103,7 @@ function makeMockLocator(
 }
 
 function parsedStates(response: any): number {
-    return JSON.parse(response.getJson());
+    return JSON.parse(response.json);
 }
 
 describe('getElementStates', () => {

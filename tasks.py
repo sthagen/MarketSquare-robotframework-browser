@@ -34,7 +34,6 @@ DIST_DIR = ROOT_DIR / "dist"
 BUILD_DIR = ROOT_DIR / "build"
 BROWSER_BATTERIES_DIR = ROOT_DIR / "browser_batteries"
 BROWSER_BATTERIES_BIN_DIR = BROWSER_BATTERIES_DIR / "BrowserBatteries" / "bin"
-proto_sources = (ROOT_DIR / "protobuf").glob("*.proto")
 PYTHON_SRC_DIR = ROOT_DIR / "Browser"
 python_protobuf_dir = PYTHON_SRC_DIR / "generated"
 WRAPPER_DIR = PYTHON_SRC_DIR / "wrapper"
@@ -204,24 +203,15 @@ def clean(c):
 
 
 @task
-def protobuf(c, force=False):
-    """Compile grpc protobuf files.
-
-    Args:
-        force: Force to build protobuf.
-    """
+def protobuf(c):
+    """Compile grpc protobuf files."""
     if not python_protobuf_dir.exists():
         python_protobuf_dir.mkdir()
         (python_protobuf_dir / "__init__.py").touch()
     if not node_protobuf_dir.exists():
         node_protobuf_dir.mkdir()
-    gen_timestamp_file = python_protobuf_dir / ".generated"
-    if _sources_changed(proto_sources, gen_timestamp_file) or force:
-        _python_protobuf_gen(c)
-        _node_protobuf_gen(c)
-        gen_timestamp_file.touch()
-    else:
-        print("no changes in .proto files, skipping protobuf build")
+    _python_protobuf_gen(c)
+    _node_protobuf_gen(c)
 
 
 def _python_protobuf_gen(c):
@@ -243,22 +233,14 @@ def _python_protobuf_gen(c):
 
 def _node_protobuf_gen(c):
     plugin_suffix = ".cmd" if platform.platform().startswith("Windows") else ""
-    protoc_plugin = (
-        NODE_MODULES / ".bin" / f"grpc_tools_node_protoc_plugin{plugin_suffix}"
+    protoc_ts_proto_plugin = (
+        NODE_MODULES / ".bin" / f"protoc-gen-ts_proto{plugin_suffix}"
     )
-    protoc_ts_plugin = NODE_MODULES / ".bin" / f"protoc-gen-ts{plugin_suffix}"
     cmd = (
         "npm run grpc_tools_node_protoc -- "
-        f"--js_out=import_style=commonjs,binary:{node_protobuf_dir} "
-        f"--grpc_out=grpc_js:{node_protobuf_dir} "
-        f"--plugin=protoc-gen-grpc={protoc_plugin} "
-        "-I ./protobuf protobuf/*.proto"
-    )
-    c.run(cmd)
-    cmd = (
-        "npm run grpc_tools_node_protoc -- "
-        f"--plugin=protoc-gen-ts={protoc_ts_plugin} "
-        f"--ts_out={node_protobuf_dir} "
+        f"--plugin=protoc-gen-ts_proto={protoc_ts_proto_plugin} "
+        f"--ts_proto_out={node_protobuf_dir} "
+        "--ts_proto_opt=outputServices=grpc-js,env=node "
         "-I ./protobuf protobuf/*.proto"
     )
     c.run(cmd)
