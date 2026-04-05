@@ -1839,6 +1839,33 @@
         "ideas",
         "code"
       ]
+    },
+    {
+      "login": "lahtinenn",
+      "name": "lahtinenn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/133641274?v=4",
+      "profile": "https://github.com/lahtinenn",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "laguill",
+      "name": "Guillaume LAFON",
+      "avatar_url": "https://avatars.githubusercontent.com/u/74424947?v=4",
+      "profile": "https://github.com/laguill",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "tkopra",
+      "name": "tkopra",
+      "avatar_url": "https://avatars.githubusercontent.com/u/106748650?v=4",
+      "profile": "https://github.com/tkopra",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -24,10 +24,10 @@ from uuid import uuid4
 from assertionengine import AssertionOperator, list_verify_assertion, verify_assertion
 from robot.libraries.BuiltIn import EXECUTION_CONTEXTS, BuiltIn
 from robot.utils import get_link_path
+from robot.utils.robottypes import is_truthy
 
 from Browser.utils.data_types import BrowserInfo, TracingGroupMode
 from Browser.utils.misc import get_download_id
-from Browser.utils.robot_booleans import is_truthy
 
 from ..assertion_engine import assertion_formatter_used, with_assertion_polling
 from ..base import LibraryComponent
@@ -463,7 +463,7 @@ class PlaywrightState(LibraryComponent):
         | ``handleSIGINT`` | Close the browser process on Ctrl-C. Defaults to True. |
         | ``handleSIGTERM`` | Close the browser process on SIGTERM. Defaults to True. |
         | ``ignoreDefaultArgs`` | If True, Playwright does not pass its own configurations args and only uses the ones from args. If a list is given, then filters out the given default arguments. Dangerous option; use with care. Defaults to False. |
-        | ``proxy`` | Network [#type-Proxy|Proxy] settings. Structure: ``{'server': <str>, 'bypass': <Optional[str]>, 'username': <Optional[str]>, 'password': <Optional[str]>}`` |
+        | ``proxy`` | Network [#type-Proxy|Proxy] settings. Structure: ``{'server': <str>, 'bypass': <Optional[str]>, 'username': <Optional[str]>, 'password': <Optional[str]>}``. Robot Framework 7.4 Secret type is supported.|
         | ``reuse_existing`` | If set to True, an existing browser instance, that matches the same arguments, will be reused. If no same configured Browser exist, a new one is started. Defaults to True. |
         | ``slowMo`` | Slows down Playwright operations by the specified amount of seconds or `timedelta`. Useful so that you can see what is going on. Defaults to no delay. |
         | ``timeout`` | Maximum time in Robot Framework time format to wait for the browser instance to start. Defaults to 30 seconds. Pass 0 to disable timeout. |
@@ -666,6 +666,18 @@ class PlaywrightState(LibraryComponent):
         for a list of supported options.
 
         If there's no open Browser this keyword will open one. Does not create pages.
+
+        The httpCredentials and proxy arguments do support Robot Framework 7.4 Secret type.
+        If Secret is used, the dictionary structure must be created before hand, example with
+        Robot Framework's VAR syntax:
+        | ${user}   ${password} =    Get Secrets    # Returns username and password as Robot Framework Secret type
+        | VAR    &{httpCredentials} =    username=${user}    password=${password}
+        | New Context    httpCredentials=${httpCredentials}
+
+        Using dictionary literals with Robot Framework 7.4 Secret type is not supported,
+        for example this will fail on variable conversion on Robot Framework side:
+        | ${user}   ${password} =    Get Secrets    # Returns username and password as Robot Framework Secret type
+        | New Context    httpCredentials={'username': ${secret}, 'password': ${secret}}    # This will fail
 
         [https://forum.robotframework.org/t//4307|Comment >>]
         """
@@ -1677,8 +1689,10 @@ class PlaywrightState(LibraryComponent):
         |     `New context`
         |     `New Page`    https://login.page.html
         |     #  Perform login
-        |     `Fill Secret`    id=username    $username
-        |     `Fill Secret`    id=password    $password
+        |     VAR    ${username}    %{USERNAME}    # Convert environment variable to secret
+        |     VAR    ${password}    %{PASSWORD}    # Convert environment variable to secret
+        |     `Fill Secret`    id=username    ${username}
+        |     `Fill Secret`    id=password    ${password}
         |     `Click`    id=button
         |     `Get Text`    id=header    ==    Something
         |     #  Save storage to disk
