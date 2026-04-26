@@ -2,10 +2,14 @@ import { Command } from 'commander';
 import * as express from 'express';
 import * as fs from 'fs';
 import * as https from 'https';
+import morgan from 'morgan';
 import * as path from 'path';
 
 const app = express.default();
 
+// Configure morgan to write to a log file to avoid stdout blocking in Docker
+const logStream = fs.createWriteStream(path.join(__dirname, '..', 'test-app.log'), { flags: 'a' });
+app.use(morgan(':date[iso] :method :url :status :res[content-length] - :response-time ms', { stream: logStream }));
 app.use(express.json());
 
 const program = new Command();
@@ -31,9 +35,7 @@ const mutualTls: boolean = options.mutualTls;
 
 app.set('etag', false);
 
-// @ts-expect-error
 app.get('/favicon.ico', (req, res) => res.status(204).send());
-// @ts-expect-error
 app.get('/dist/favicon.ico', (req, res) => res.status(204).send());
 
 app.head('/api/get/json', (req, res) => {
