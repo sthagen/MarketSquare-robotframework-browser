@@ -45,7 +45,6 @@ node_dir = ROOT_DIR / "node"
 NODE_MODULES = ROOT_DIR / "node_modules"
 npm_deps_timestamp_file = NODE_MODULES / ".installed"
 
-node_lint_timestamp_file = node_dir / ".linted"
 ATEST_TIMEOUT = 900
 cpu_count = os.cpu_count() or 1
 EXECUTOR_COUNT = str(cpu_count - 1 or 1)
@@ -193,7 +192,6 @@ def clean(c):
     pyi_file = PYTHON_SRC_DIR / "__init__.pyi"
     for file in [
         npm_deps_timestamp_file,
-        node_lint_timestamp_file,
         Path("./.coverage"),
         pyi_file,
         Path("./.ruff_cache"),
@@ -457,6 +455,7 @@ def atest(
     _batteries(batteries)
     from Browser.utils import spawn_node_process
 
+    os.environ["ROBOT_FRAMEWORK_BROWSER_PINO_LOG_LEVEL"] = "debug"
     background_process, port = spawn_node_process(ATEST_OUTPUT / "playwright-log.txt")
     try:
         os.environ["ROBOT_FRAMEWORK_BROWSER_NODE_PORT"] = port
@@ -492,6 +491,7 @@ def atest_robot(c, smoke=False, suite=None, batteries=False):
         suite: Select which suite to run.
         batteries: If true, includes BrowserBatteries in the test run.
     """
+    os.environ["ROBOT_FRAMEWORK_BROWSER_PINO_LOG_LEVEL"] = "debug"
     os.environ["ROBOT_SYSLOG_FILE"] = str(ATEST_OUTPUT / "syslog.txt")
     sys_var_ci = int(os.environ.get("SYS_VAR_CI_INSTALL_TEST", 0))
     sys_var_cmd = (
@@ -587,6 +587,7 @@ def atest_coverage(
     """
     from Browser.utils import spawn_node_process
 
+    os.environ["ROBOT_FRAMEWORK_BROWSER_PINO_LOG_LEVEL"] = "debug"
     os.environ["ROBOT_FRAMEWORK_BROWSER_NODE_COVERAGE"] = "1"
     node_build(c)
     clean_atest(c)
@@ -654,6 +655,7 @@ def _run_robot_with_coverage(extra_args=None, loglevel="DEBUG"):
         str(ATEST_OUTPUT),
     ]
     robot_args = _add_skips_list(robot_args, False)
+    robot_args.extend(["--exclude", "no-coverage-support"])
 
     cmd = (
         [sys.executable, "-m", "coverage", "run"]
@@ -835,23 +837,14 @@ def lint_python(c, fix=False):
 
 
 @task
-def lint_node(c, force=False):
-    """Lint node files
-
-    Args:
-        force: When set, lints node files even there is no changes.
-    """
-    source_files = [*node_dir.glob("**/*.ts"), *node_dir.glob("**/*.js")]
-    if _sources_changed(source_files, node_lint_timestamp_file) or force:
-        if IN_CI:
-            c.run("npm run format:check")
-            c.run("npm run lint:check")
-        else:
-            c.run("npm run format")
-            c.run("npm run lint")
-        node_lint_timestamp_file.touch()
+def lint_node(c: Context):
+    """Lint node files."""
+    if IN_CI:
+        c.run("npm run format:check")
+        c.run("npm run lint:check")
     else:
-        print("no changes in node files, skipping node lint")
+        c.run("npm run format")
+        c.run("npm run lint")
 
 
 @task

@@ -33,7 +33,13 @@ import {
 import strip from 'strip-comments';
 import { v4 as uuidv4 } from 'uuid';
 
-import { logger } from './browser_logger';
+import {
+    clearRFKeywordContext,
+    logger,
+    setRFKeywordContext,
+    setRFSuiteContext,
+    setRFTestContext,
+} from './browser_logger';
 import { MAX_RESPONSE_CHUNK_BYTES, splitUtf8ByMaxBytes } from './chunking';
 import {
     Request_Bool,
@@ -49,6 +55,7 @@ import {
     Request_Index,
     Request_KeywordCall,
     Request_PersistentContext,
+    Request_RFContext,
     Request_TraceGroup,
     Request_UrlOptions,
     Response_Empty,
@@ -291,6 +298,10 @@ function indexedPage(newPage: Page): IndexedPage {
     const pageErrors: TimedError[] = [];
     const consoleMessages: TimedConsoleMessage[] = [];
     newPage.on('pageerror', (error) => {
+        logger.warn(
+            { event_kind: 'internal_error', status: 'failed', error_type: error.name },
+            error.stack ?? error.message,
+        );
         const timedError = {
             name: error.name,
             message: error.message,
@@ -956,6 +967,7 @@ export async function openTraceGroup(
             }
         }
     }
+    setRFKeywordContext({ kw_name: name, kw_file: file || undefined, kw_line: line || undefined });
     return emptyWithLog('Opened trace group');
 }
 
@@ -967,7 +979,14 @@ export async function closeTraceGroup(openBrowsers: PlaywrightState): Promise<Re
             }
         }
     }
+    clearRFKeywordContext();
     return emptyWithLog('Closed trace group');
+}
+
+export async function setRFContext(request: Request_RFContext): Promise<Response_Empty> {
+    setRFTestContext(request.testId, request.testName);
+    setRFSuiteContext(request.suiteId, request.suiteName);
+    return emptyWithLog('RF context updated');
 }
 
 async function _switchPage(id: Uuid, browserState: BrowserState) {

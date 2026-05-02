@@ -16,7 +16,7 @@ import { sendUnaryData, ServerReadableStream, ServerUnaryCall, ServerWritableStr
 import { ServerSurfaceCall } from '@grpc/grpc-js/build/src/server-call';
 import { Page } from 'playwright';
 
-import { logger } from './browser_logger';
+import { errorType, logger } from './browser_logger';
 import * as browserControl from './browser-control';
 import * as clock from './clock';
 import * as cookie from './cookie';
@@ -70,12 +70,30 @@ export class PlaywrightServer {
             try {
                 const request = call.request;
                 if (request === null) throw Error('No request');
-                logger.info(`Start of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'started' });
                 const response = await func(request, this.getState(call));
-                logger.info(`End of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'succeeded' });
                 callback(null, response);
             } catch (e) {
-                logger.info(`Error of node method  ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'failed' });
+                callback(errorResponse(e), null);
+            }
+        };
+    };
+
+    private wrappingDebug = <T, K>(
+        func: (request: T, state: PlaywrightState) => Promise<K>,
+    ): ((call: ServerUnaryCall<T, K>, callback: sendUnaryData<K>) => Promise<void>) => {
+        return async (call: ServerUnaryCall<T, K>, callback: sendUnaryData<K>) => {
+            try {
+                const request = call.request;
+                if (request === null) throw Error('No request');
+                logger.debug({ event_kind: 'grpc', action: func.name, status: 'started' });
+                const response = await func(request, this.getState(call));
+                logger.debug({ event_kind: 'grpc', action: func.name, status: 'succeeded' });
+                callback(null, response);
+            } catch (e) {
+                logger.debug({ event_kind: 'grpc', action: func.name, status: 'failed' });
                 callback(errorResponse(e), null);
             }
         };
@@ -86,12 +104,12 @@ export class PlaywrightServer {
     ): ((call: ServerUnaryCall<T, K>, callback: sendUnaryData<K>) => Promise<void>) => {
         return async (call: ServerUnaryCall<T, K>, callback: sendUnaryData<K>) => {
             try {
-                logger.info(`Start of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'started' });
                 const response = await func(this.getState(call));
-                logger.info(`End of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'succeeded' });
                 callback(null, response);
             } catch (e) {
-                logger.info(`Error of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'failed' });
                 callback(errorResponse(e), null);
             }
         };
@@ -104,12 +122,12 @@ export class PlaywrightServer {
             try {
                 const request = call.request;
                 if (request === null) throw Error('No request');
-                logger.info(`Start of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'started' });
                 const response = await func(request, this.getActivePage(call));
-                logger.info(`End of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'succeeded' });
                 callback(null, response);
             } catch (e) {
-                logger.info(`Error of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'failed' });
                 callback(errorResponse(e), null);
             }
         };
@@ -122,12 +140,12 @@ export class PlaywrightServer {
             try {
                 const request = call.request;
                 if (request === null) throw Error('No request');
-                logger.info(`Start of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'started' });
                 const response = await func(request, this.getState(call), this.getActivePage(call));
-                logger.info(`End of node method ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'succeeded' });
                 callback(null, response);
             } catch (e) {
-                logger.info(`Error of node method  ${func.name}`);
+                logger.info({ event_kind: 'grpc', action: func.name, status: 'failed' });
                 callback(errorResponse(e), null);
             }
         };
@@ -144,6 +162,10 @@ export class PlaywrightServer {
                 call.write(result);
             }
         } catch (e) {
+            logger.error(
+                { event_kind: 'internal_error', status: 'failed', error_type: errorType(e) },
+                'Error in callExtensionKeyword',
+            );
             call.emit('error', errorResponse(e));
         }
         call.end();
@@ -156,6 +178,7 @@ export class PlaywrightServer {
     closePage = this.wrapping(playwrightState.closePage);
     openTraceGroup = this.wrapping(playwrightState.openTraceGroup);
     closeTraceGroup = this.wrappingState(playwrightState.closeTraceGroup);
+    setRfContext = this.wrappingDebug(playwrightState.setRFContext);
     getBrowserCatalog = this.wrapping(playwrightState.getBrowserCatalog);
     getConsoleLog = this.wrapping(playwrightState.getConsoleLog);
     getErrorMessages = this.wrapping(playwrightState.getErrorMessages);
@@ -487,6 +510,10 @@ export class PlaywrightServer {
             })();
         });
         call.on('error', (e) => {
+            logger.error(
+                { event_kind: 'internal_error', status: 'failed', error_type: errorType(e) },
+                'Stream error in uploadFileBySelector',
+            );
             callback(errorResponse(e), null);
         });
         call.on('end', () => {

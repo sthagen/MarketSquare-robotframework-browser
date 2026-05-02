@@ -1772,3 +1772,22 @@ class PlaywrightState(LibraryComponent):
             return
         with suppress(Exception), self.playwright.grpc_channel() as stub:
             stub.CloseTraceGroup(Request().Empty())
+
+    def set_rf_context(
+        self,
+        test_id: str = "",
+        test_name: str = "",
+        suite_id: str = "",
+        suite_name: str = "",
+    ):
+        if self.library._playwright is None:
+            return
+        with suppress(Exception), self.playwright.grpc_channel() as stub:
+            stub.SetRFContext(
+                Request().RFContext(
+                    test_id=test_id,
+                    test_name=test_name,
+                    suite_id=suite_id,
+                    suite_name=suite_name,
+                )
+            )
