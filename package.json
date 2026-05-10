@@ -1,6 +1,6 @@
 {
   "name": "robotframework-playwright",
-  "version": "19.14.2",
+  "version": "19.15.0",
   "main": "index.ts",
   "author": "Mikko Korpela <mikko.korpela@gmail.com>",
   "license": "Apache-2.0",
@@ -23,8 +23,8 @@
     "globals": "^17.6.0",
     "grpc-tools": "^1.13.1",
     "husky": "^9.1.7",
-    "jest": "^30.4.0",
-    "lint-staged": "^17.0.2",
+    "jest": "^30.4.2",
+    "lint-staged": "^17.0.3",
     "morgan": "^1.10.1",
     "prettier": "^3.8.3",
     "react": "^19.2.6",
