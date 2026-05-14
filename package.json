@@ -24,7 +24,7 @@
     "grpc-tools": "^1.13.1",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
-    "lint-staged": "^17.0.3",
+    "lint-staged": "^17.0.4",
     "morgan": "^1.10.1",
     "prettier": "^3.8.3",
     "react": "^19.2.6",
@@ -37,7 +37,7 @@
     "ts-node": "^10.9.2",
     "ts-proto": "^2.11.8",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.2"
+    "typescript-eslint": "^8.59.3"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.12.0",
@@ -45,7 +45,7 @@
     "@medv/finder": "^4.0.2",
     "monocart-coverage-reports": "^2.12.11",
     "pino": "^10.3.1",
-    "playwright": "^1.59.1",
+    "playwright": "^1.60.0",
     "strip-comments": "^2.0.1",
     "uuid": "^14.0.0"
   },
