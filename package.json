@@ -25,19 +25,19 @@
     "husky": "^9.1.7",
     "jest": "^30.4.2",
     "lint-staged": "^17.0.7",
-    "morgan": "^1.10.1",
+    "morgan": "^1.11.0",
     "prettier": "^3.8.3",
     "react": "^19.2.6",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "react-dom": "^19.2.6",
+    "react-dom": "^19.2.7",
     "react-router-dom": "^7.16.0",
     "ts-jest": "^29.4.11",
     "ts-loader": "^9.6.0",
     "ts-node": "^10.9.2",
     "ts-proto": "^2.11.8",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.60.0"
+    "typescript-eslint": "^8.60.1"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.12.0",
