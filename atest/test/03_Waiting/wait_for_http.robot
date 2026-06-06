@@ -20,11 +20,20 @@ Wait For Request Synchronous
 Wait For Request Async
     ${promise} =    Promise To    Wait For Request    matcher=    timeout=3s
     Click    \#delayed_request
-    Wait For    ${promise}
+    ${data} =    Wait For    ${promise}
+    Should Contain    ${data.url}    /api/log/event
+    Should Be Equal    ${data.method}    POST
+    Should Not Be Empty    ${data.headers}
+    Should Be Equal    ${data.postData}    ${None}
+    Length Should Be    ${data}    4
 
 Wait For Request Url
     Click    \#delayed_request
-    Wait For Request    matcher=${ROOT_URL}api/get/json    timeout=1s
+    ${data} =    Wait For Request    matcher=${ROOT_URL}api/get/json    timeout=1s
+    Should Contain    ${data.url}    /api/get/json
+    Should Be Equal    ${data.method}    GET
+    Should Not Be Empty    ${data.headers}
+    Should Be Equal    ${data.postData}    ${None}
 
 Wait For Request Regex
     [Tags]    no-docker-pr
@@ -35,6 +44,25 @@ Wait For Request Predicate
     Click    \#delayed_request
     Wait For Request    matcher=request => request.url().endsWith('api/get/json') && request.method() === 'GET'
     ...    timeout=1s
+
+Wait For Request With POST Method
+    Click    id=delayed_request_post
+    ${data} =    Wait For Request    matcher=/\\/\\/local\\w+\\:\\d+\\/api\\/post\\/json/    timeout=1s
+    VAR    ${post_data} =    ${data.postData}
+    Should Be Equal    ${post_data}[data]    test
+    Should Be Equal    ${post_data}[kala]    salmon
+    Should Be Equal    ${data.method}    POST
+    Should Contain    ${data.url}    /api/post/json
+    Should Not Be Empty    ${data.headers}
+    Length Should Be    ${data}    4
+
+Wait For Request With Invalid JSON
+    Click    id=delayed_request_invalid_json_post
+    ${data} =    Wait For Request    matcher=/\\/\\/local\\w+\\:\\d+\\/api\\/post\\/invalid-json/    timeout=1s
+    Should Be Equal    ${data.method}    POST
+    Should Contain    ${data.url}    /api/post/invalid-json
+    Should Not Be Empty    ${data.headers}
+    Should Be Equal    ${data.postData}    This is not valid JSON in body
 
 Wait For Response Synchronous
     Click    \#delayed_request
@@ -100,13 +128,6 @@ Wait For Response With OPTIONS Request
     Should Be Equal As Numbers    ${res}    204
     Should Be Equal As Numbers    ${res2.status}    204
     Should Be Equal    ${res2.body}    ${None}
-
-Wait Until Network Is Idle Works
-    [Tags]    slow
-    Go To    ${ROOT_URL}delayed-load.html
-    Get Text    \#server_delayed_response    ==    Server response after 400ms
-    Wait Until Network Is Idle    timeout=3s
-    Get Text    \#server_delayed_response    ==    after some time I respond
 
 Wait For Navigation Works
     [Tags]    slow

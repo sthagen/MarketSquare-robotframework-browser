@@ -116,9 +116,14 @@ class Network(LibraryComponent):
                     timeout=self.get_timeout(timeout),
                 )
             )
-            logger.debug(response.log)
-            # Add format response back here
-            return response.body
+            logger.info(response.log)
+            try:
+                data = json.loads(response.json)
+            except json.decoder.JSONDecodeError:
+                logger.info(f"Failed to decode JSON: {response.json}")
+                data = response.json
+            logger.debug(f"Received request: {data}")
+            return data
 
     def _wait_for_http_response(self, matcher, timeout):
         body = ""
@@ -142,8 +147,11 @@ class Network(LibraryComponent):
     @keyword(tags=("Wait", "HTTP"))
     def wait_for_request(
         self, matcher: str | RegExp = "", timeout: timedelta | None = None
-    ) -> Any:
+    ) -> DotDict | Any:
         """Waits for request matching matcher to be made.
+
+        The returned object is a dictionary with keys: ``url``, ``method``, ``headers`` and ``postData``.
+        ``headers`` is a dictionary of request headers. ``postData`` is ``None`` if body is empty or the request body.
 
         | =Arguments= | =Description= |
         | ``matcher`` | Request URL matcher. Can be a string (Glob-Pattern), JavaScript RegExp (encapsulated in / with following flags) or JavaScript arrow-function that receives the [https://playwright.dev/docs/api/class-request|Request] object and returns a boolean. By default (with empty string) matches first available request. For additional information, see the Playwright [https://playwright.dev/docs/api/class-page#page-wait-for-request|waitForRequest] documentation. |
@@ -250,30 +258,6 @@ class Network(LibraryComponent):
         except Exception:
             logger.debug(f"Returned response is of type {type(response)}")
             return response
-
-    @keyword(tags=("Wait", "HTTP"))
-    def wait_until_network_is_idle(self, timeout: timedelta | None = None):
-        """*DEPRECATED!!* Use `Wait For Load State` instead. rfbrowser transform --wait-until-network-is-idle path/to/test command automatically transforms keyword to new format.
-
-        If you have:
-        | `Wait Until Network Is Idle`    timeout=3s
-        then change it to:
-        | `Wait For Load State`    networkidle    timeout=3s
-
-        Waits until there has been at least one instance of 500 ms of no network traffic on the page after loading.
-
-        Doesn't wait for network traffic that wasn't initiated within 500ms of page load.
-
-        | =Arguments= | =Description= |
-        | ``timeout`` | Timeout supports Robot Framework time format. Uses browser timeout if not set. |
-
-        Example:
-        | `Go To`                         ${URL}
-        | `Wait Until Network Is Idle`    timeout=3s
-
-        [https://forum.robotframework.org/t//4350|Comment >>]
-        """
-        self.library.wait_for_load_state(PageLoadStates.networkidle, timeout)
 
     @keyword(tags=("Wait", "HTTP"))
     def wait_for_navigation(
