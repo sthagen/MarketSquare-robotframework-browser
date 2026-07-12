@@ -8,6 +8,11 @@ class Response:
     items = ["element text"]
 
 
+class SelectResponse:
+    log = "Log text"
+    items = ["Dog"]
+
+
 def test_get_text(ctx: MagicMock):
     getter = Getters(ctx)
     getter._get_text = MagicMock(return_value=Response())  # type: ignore[assignment]

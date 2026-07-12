@@ -118,12 +118,12 @@ enum TextType {
 async function _getTextContentNoTextType(locator: Locator): Promise<string[]> {
     logger.info(`Getting text content without text type`);
     const tag = await locator.evaluate((e) => e.tagName);
-    if (tag === 'SELECT' || tag === 'TEXTAREA' || tag === 'INPUT') {
+    if (tag === 'TEXTAREA' || tag === 'INPUT') {
         logger.info(`Element is ${tag}, get inputValue`);
         const inputValue = await locator.inputValue();
         return [inputValue];
     } else {
-        logger.info(`Locator was not an <input>, <textarea>, or <select> element, falling back to innerText.`);
+        logger.info(`Locator was not an <input> or <textarea> element, falling back to innerText.`);
         const innerText = await locator.innerText();
         return [innerText];
     }
