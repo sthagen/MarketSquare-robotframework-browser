@@ -94,16 +94,15 @@ If you upgrading from previous release with [pip](http://pip-installer.org), run
 Alternatively you can download the source distribution from
 [PyPI](https://pypi.org/project/robotframework-browser/) and
 install it manually. Browser library {version} was released on {date}.
-Browser supports Python 3.10+, Node 22/24 LTS and Robot Framework 6.1+.
+Browser supports Python 3.10+, Node 22/24/26 LTS and Robot Framework 6.1+.
 Library was tested with Playwright REPLACE_PW_VERSION
 
 """
 
 
 def _node_deps(context: Context):
-    arch = " --target_arch=x64" if platform.processor() == "arm" else ""
     context.run(
-        f"npm install{arch} --parseable true --progress false",
+        "npm install --parseable true --progress false",
         env={"PLAYWRIGHT_BROWSERS_PATH": "0"},
     )
     context.run(
@@ -762,6 +761,16 @@ def _run_pabot(extra_args=None, shard=None, include_mac=False, loglevel="DEBUG")
     return rc
 
 
+def _get_rf_version() -> tuple:
+    def integer(s) -> int:
+        try:
+            return int(s)
+        except ValueError:
+            return 0
+
+    return tuple(map(integer, robot_version_module.get_version().split(".")))
+
+
 def _add_skips(default_args, include_mac=False):
     if platform.platform().lower().startswith("windows"):
         print("Running in Windows exclude no-windows-support tags")
@@ -773,7 +782,8 @@ def _add_skips(default_args, include_mac=False):
         print("Running in Mac exclude no-mac-support tags")
         default_args.extend(["--exclude", "no-mac-support"])
     default_args.extend(["--exclude", "tidy-transformer"])
-    rf_version = tuple(map(int, robot_version_module.get_version().split(".")))
+
+    rf_version = _get_rf_version()
     if rf_version < (7, 4):
         print(
             "Running with Robot Framework version < 7.4, exclude require-rf-7.4+ tags"
@@ -794,7 +804,7 @@ def _add_skips_list(default_args, include_mac=False):
         print("Running in Mac exclude no-mac-support tags")
         default_args.extend(["--exclude", "no-mac-support"])
     default_args.extend(["--exclude", "tidy-transformer"])
-    rf_version = tuple(map(int, robot_version_module.get_version().split(".")))
+    rf_version = _get_rf_version()
     if rf_version < (7, 4):
         print(
             "Running with Robot Framework version < 7.4, exclude require-rf-7.4+ tags"

@@ -1,6 +1,6 @@
 {
   "name": "robotframework-playwright",
-  "version": "20.0.0",
+  "version": "20.1.0",
   "main": "index.ts",
   "author": "Mikko Korpela <mikko.korpela@gmail.com>",
   "license": "Apache-2.0",
@@ -17,30 +17,30 @@
     "@yao-pkg/pkg": "^6.21.0",
     "esbuild": "^0.28.1",
     "esbuild-node-externals": "^1.23.1",
-    "eslint": "^10.6.0",
-    "eslint-plugin-simple-import-sort": "^13.0.0",
+    "eslint": "^10.7.0",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
     "express": "^5.2.1",
     "globals": "^17.7.0",
     "grpc-tools": "^1.13.1",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
-    "lint-staged": "^17.0.8",
+    "lint-staged": "^17.2.0",
     "morgan": "^1.11.0",
-    "prettier": "^3.9.5",
+    "prettier": "^3.9.6",
     "react": "^19.2.7",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "react-dom": "^19.2.7",
+    "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.1",
-    "ts-jest": "^29.4.11",
+    "ts-jest": "^29.4.12",
     "ts-loader": "^9.6.2",
     "ts-node": "^10.9.2",
     "ts-proto": "^2.12.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.63.0"
+    "typescript-eslint": "^8.65.0"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^2.12.1",
+    "@bufbuild/protobuf": "^2.13.0",
     "@grpc/grpc-js": "^1.14.4",
     "@medv/finder": "^4.0.2",
     "monocart-coverage-reports": "^2.12.12",
@@ -75,5 +75,13 @@
       "Browser/wrapper/static/*",
       "node_modules/playwright-core/**/*"
     ]
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true,
+    "fsevents@2.3.2": true,
+    "grpc-tools@1.13.1": true,
+    "protobufjs@7.6.5": true,
+    "unrs-resolver@1.12.2": true
   }
 }

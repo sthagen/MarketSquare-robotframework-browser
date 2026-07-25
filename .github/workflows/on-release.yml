@@ -12,11 +12,11 @@ jobs:
         with:
           persist-credentials: false
       - name: Use Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24.x
       - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: 3.12
       - name: Dependencies for building docs
@@ -55,11 +55,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: "24.x"
       - name: Setup Python 3.13
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Install dependencies
@@ -125,11 +125,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python 3.14
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: 3.14
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: "24.x"
       - name: Download rfbrowser-wheel artifact
@@ -215,7 +215,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Setup Python 3.13
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Download rfbrowser-wheel artifact
@@ -246,7 +246,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Setup Python 3.13
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Download rfbrowser-browser-wheels
@@ -335,7 +335,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python 3.11
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: 3.11
           cache: 'pip'

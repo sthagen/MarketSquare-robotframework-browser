@@ -47,7 +47,7 @@ and install NodeJS dependencies. See more detail in
   - if `rfbrowser` is not found, try `python -m Browser.entry install`
 
 ## Installation with NodeJS
-From Node side 22 and 24 LTS versions are supported.
+From Node side 22, 24 and 26 LTS versions are supported.
 
 1. Install NodeJS e.g. from https://nodejs.org/en/download/
 2. Update pip `pip install -U pip` to ensure latest version is used
@@ -68,6 +68,26 @@ Or use the
 [docker images](https://github.com/MarketSquare/robotframework-browser/pkgs/container/robotframework-browser%2Frfbrowser-stable)
 . Documented at
 [docker/README.md](https://github.com/MarketSquare/robotframework-browser/blob/main/docker/README.md).
+
+### NodeJS 26 and npm 12 support
+If you are installing Browser library with NodeJS 26 and are using `npm` 12.x, then there are
+few additional steps on the install process. This is because `npm` 12.x dropped support for
+post install scripts: https://installsafe.dev/ At this writing Browser library uses many
+dependencies which do use post install scripts. If you are using NodeJS 26 and npm 12.x,
+then users need to approve the post install scripts for the Browser library NodeJS
+dependencies. Because this is moving target, easiest way to do this to install Browser
+library, run `rfbrowser init`. Then un the following npm commands:
+1. npm approve-scripts --allow-scripts-pending
+2. npm approve-scripts <package-a> <package-b>
+
+Where `<package-a>`, `<package-b>` are replaced with the packages which are listed in
+step 1. Review the packages, because if you several NodeJS projects, the pending list
+may contain packages out of the Browser library ecosystem.
+
+After user has allowed required packages, rerun the `rfbrowser init` commend.
+The installation without NodeJS does not need these extra steps, because
+it has NodeJS dependencies build as binary.
+
 
 ## Install with transformer
 
@@ -455,7 +475,7 @@ Supported by [Robocorp](https://robocorp.com/) through [Robot Framework Foundati
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/dean4711"><img src="https://avatars.githubusercontent.com/u/5942386?v=4?s=100" width="100px;" alt="André"/><br /><sub><b>André</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/commits?author=dean4711" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MarvKler"><img src="https://avatars.githubusercontent.com/u/98239503?v=4?s=100" width="100px;" alt="MarvKler"/><br /><sub><b>MarvKler</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3AMarvKler" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MarvKler"><img src="https://avatars.githubusercontent.com/u/98239503?v=4?s=100" width="100px;" alt="MarvKler"/><br /><sub><b>MarvKler</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3AMarvKler" title="Bug reports">🐛</a> <a href="#ideas-MarvKler" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/vcarnogu"><img src="https://avatars.githubusercontent.com/u/13346869?v=4?s=100" width="100px;" alt="Vaclav Carnogursky"/><br /><sub><b>Vaclav Carnogursky</b></sub></a><br /><a href="#ideas-vcarnogu" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Way"><img src="https://avatars.githubusercontent.com/u/122285?v=4?s=100" width="100px;" alt="Alexander Vey"/><br /><sub><b>Alexander Vey</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Away" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/brazdauskasv"><img src="https://avatars.githubusercontent.com/u/17760245?v=4?s=100" width="100px;" alt="Vaclovas Brazdauskas"/><br /><sub><b>Vaclovas Brazdauskas</b></sub></a><br /><a href="https://github.com/MarketSquare/robotframework-browser/issues?q=author%3Abrazdauskasv" title="Bug reports">🐛</a></td>
