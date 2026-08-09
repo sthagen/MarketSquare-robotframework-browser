@@ -10,12 +10,17 @@ esbuild
         entryPoints: ['./node/playwright-wrapper/index.ts'],
         bundle: true,
         platform: 'node',
+        target: 'node22',
         outfile: './Browser/wrapper/index.js',
         sourcemap: withCoverage ? 'external' : false,
         plugins: [
             nodeExternalsPlugin({
-                // Allow UUID to be bundled instead of external
-                // Needed when building with pkg
+                // uuid is ESM only, it has no CommonJS entry point at all, and
+                // this bundle is CommonJS. Left external it becomes a
+                // require() of an ES module, which NodeJS 22.11 and older
+                // refuse outright and newer versions only allow with an
+                // experimental warning on every start. Bundling converts it at
+                // build time instead, so it works on every supported NodeJS.
                 allowList: ['uuid'],
             }),
         ],

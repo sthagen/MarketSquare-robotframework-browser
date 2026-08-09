@@ -344,6 +344,9 @@ def show_trace(
     if not _is_url(normalized_trace):
         log(f"Opening file: {normalized_trace}")
     ensure_playwright_browsers_path()
+    if HAS_BROWSER_BATTERIES:
+        _show_trace_via_grpc(browser, normalized_trace)
+        return
     try:
         _show_trace_via_npx(browser, host, port, stdin, normalized_trace)
     except Exception:

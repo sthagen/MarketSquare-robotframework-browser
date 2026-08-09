@@ -93,6 +93,28 @@ Docker container builds a clean install package. This can be used to check that 
 ### Install dependencies
 Ensure generated code and types are up to date with `inv build`
 
+### Check NodeJS version and platform floors
+1. Check the NodeJS version we ship is still current by running: `inv node-version-check`.
+If it does fail, raise an issue and add it to the milestone, update `version` in
+[nodejs_pin.toml](https://github.com/MarketSquare/robotframework-browser/blob/main/nodejs_pin.toml)
+, then close the issue once the PR is merged.
+1. Check the NodeJS shipped inside BrowserBatteries with `inv node-floor-check`
+If it fails, raise an issue and add it to the milestone so the change becomes
+visible in the release notes, update the value it names in `nodejs_pin.toml` and
+the platform table in `browser_batteries/README.md` to match, then close the
+issue once the PR is merged.
+
+The values both checks read live in `nodejs_pin.toml`, so that the daily
+[scheduled workflow](https://github.com/MarketSquare/robotframework-browser/blob/main/.github/workflows/on-schedule.yml)
+can rewrite them.
+
+Moving to a new **LTS line** is deliberately not automated. It changes which
+platforms get a wheel at all, so `inv node-version-check` fails and leaves it to
+a person. Run `inv node-pin-bump` by hand to see the derived values, and expect
+to update the platform table in `browser_batteries/README.md` too: the distro
+names in it cannot be read out of a binary.
+
+
 ### Set version number
 Run `inv version $VERSION` to update the version information to both Python
 and Node components.

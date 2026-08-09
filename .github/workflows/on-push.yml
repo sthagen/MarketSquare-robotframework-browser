@@ -326,13 +326,19 @@ jobs:
   build_browser_batteries_wheels:
     name: Build wheels on ${{ matrix.os }} for BrowserBatteries tests
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    env:
+      # This job only builds wheels, no need to download Playwright browsers
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-          - os: macos-latest
-            arch: arm64
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - windows-latest
+          - macos-15-intel
+          - macos-latest
 
     steps:
       - uses: actions/checkout@v7
@@ -340,10 +346,12 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: "24.x"
+          cache: 'npm'
       - name: Setup Python 3.13
         uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+          cache: 'pip'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -393,13 +401,11 @@ jobs:
       - build_browser_batteries_wheels
     name: Test wheels on ${{ matrix.os }} for BrowserBatteries tests
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-          - os: macos-latest
-            arch: arm64
+        os: ${{ fromJSON(github.event_name == 'schedule' && '["ubuntu-latest", "ubuntu-24.04-arm", "windows-latest", "macos-15-intel", "macos-latest"]' || '["ubuntu-latest", "ubuntu-24.04-arm", "windows-latest", "macos-latest"]') }}
 
     steps:
       - uses: actions/checkout@v7
@@ -407,6 +413,7 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: 3.14
+          cache: 'pip'
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
@@ -427,28 +434,46 @@ jobs:
           name: demoapp-bb-test-${{ matrix.os }}
           path: demoapp
       - name: Install Browser and BrowserBatteries
+        if: matrix.os != 'windows-latest'
         run: |
           python -m pip install --upgrade pip
           pip install rfbrowser-wheel/robotframework_browser-*-py3-none-any.whl
           pip install browser-batteries-wheels/robotframework_browser_batteries-*-py3-none-*.whl
           rfbrowser --version
           rfbrowser install --with-deps
+      - name: Install Browser and BrowserBatteries On Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          python -m pip install --upgrade pip
+          pip install (Resolve-Path rfbrowser-wheel/robotframework_browser-*-py3-none-any.whl)
+          pip install (Resolve-Path browser-batteries-wheels/robotframework_browser_batteries-*-py3-none-*.whl)
+          rfbrowser --version
+          rfbrowser install
       - name: Install test dependencies
         run: |
           pip install -r Browser/dev-requirements.txt
       - name: Unzip demoapp *nix
+        if: matrix.os != 'windows-latest'
         run: |
           rm -rf Browser
           rm -rf node
           rm -rf browser_batteries
           ls -l demoapp
           unzip demoapp/demo-app*.zip -d .
-      - name: Run tests on Linux with packed demoapp
+      - name: Unzip demoapp Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          Remove-Item -Path .\Browser -Force -Recurse
+          Remove-Item -Path .\node -Force -Recurse
+          Remove-Item -Path .\browser_batteries -Force -Recurse
+          dir demoapp
+          Expand-Archive -Path (Resolve-Path demoapp/demo-app*.zip) -DestinationPath .
+      - name: Run tests on ${{ matrix.os }} with packed demoapp
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-24.04-arm'
         run: |
           xvfb-run --auto-servernum invoke atest-robot --smoke
-      - name: Run tests on MacOS with packed demoapp
-        if: matrix.os == 'macos-latest'
+      - name: Run tests on ${{ matrix.os }} with packed demoapp
+        if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
         run: |
           inv atest-robot
       - uses: actions/upload-artifact@v7
@@ -490,7 +515,7 @@ jobs:
           name: rfbrowser-wheel-bb-test
           path: docker/dist
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
