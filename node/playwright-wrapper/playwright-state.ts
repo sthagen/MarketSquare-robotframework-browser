@@ -160,14 +160,17 @@ export async function extensionKeywordCall(
     const keyword = extension[keywordName];
     const namedArguments = Object.fromEntries(args['arguments']);
     const apiArguments = new Map();
+    const argNames = getArgumentNamesFromJavascriptKeyword(keyword);
+    // Resolve the browser only when the keyword asks for something that needs
+    // one. So if it has arguments like page, context or browser.
+    if (argNames.some((name) => name === 'page' || name === 'context' || name === 'browser')) {
+        apiArguments.set('browser', state.getActiveBrowser().browser);
+    }
     apiArguments.set('page', state.getActivePage());
     apiArguments.set('context', state.getActiveContext());
-    apiArguments.set('browser', state.getActiveBrowser()?.browser);
     apiArguments.set('logger', (msg: string) => call.write(jsonResponse('', msg)));
     apiArguments.set('playwright', playwright);
-    const functionArguments = getArgumentNamesFromJavascriptKeyword(keyword).map(
-        (argName) => apiArguments.get(argName) || namedArguments[argName],
-    );
+    const functionArguments = argNames.map((argName) => apiArguments.get(argName) || namedArguments[argName]);
     const result = await keyword(...functionArguments);
     if (result === undefined) {
         return [jsonResponse('', 'ok')];
@@ -362,7 +365,7 @@ export class PlaywrightState {
     public getActiveBrowser = (): BrowserState => {
         const currentBrowser = this.activeBrowser;
         if (currentBrowser === undefined) {
-            throw new Error('Browser has been closed.');
+            throw new Error('No Browser is open but needed for this operation.');
         }
         return currentBrowser;
     };
@@ -1242,10 +1245,8 @@ export async function mergeCoverage(request: Request_CoverageMerge, state: Playw
         if (reports && reports.length === 1 && reports[0] === 'v8') {
             mergedOptions.reports = [['v8'], configFileModule.reports || []].flat();
         }
-        if (mergedOptions.name === '' && configFileModule.name) {
-            mergedOptions.name = configFileModule.name;
-        } else {
-            mergedOptions.name = defaultName;
+        if (mergedOptions.name === '') {
+            mergedOptions.name = configFileModule.name || defaultName;
         }
         logger.info(`Merged options: ${JSON.stringify(mergedOptions)}`);
     } else {

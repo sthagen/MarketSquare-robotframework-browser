@@ -150,6 +150,20 @@ Adding Custom Locator Handler With Wrong Order Does Not Fail
     Click    id=CreateOverlayButton    # Overlay is displayed
     Click    id=textHeading    # Overlay should be closed
 
+Custom Locator Handler Spec Survives Being Reused
+    VAR    &{handler_spec_click} =
+    ...    action=click
+    ...    selector=id=OverlayCloseButton
+    ...    force=${True}
+    VAR    @{specs} =    ${handler_spec_click}
+    Add Locator Handler Custom    id=overlay    ${specs}
+    Dictionary Should Contain Key    ${handler_spec_click}    action
+    Dictionary Should Contain Key    ${handler_spec_click}    selector
+    # The same dict twice in one call is the second way this used to fail.
+    VAR    @{twice} =    ${handler_spec_click}    ${handler_spec_click}
+    Add Locator Handler Custom    id=overlay    ${twice}
+    Add Locator Handler Custom    id=overlay    ${specs}
+
 Adding Custom Locator Handler Fill Without Value Shuld Fail
     VAR    &{handler_spec_fill} =
     ...    action=Fill
