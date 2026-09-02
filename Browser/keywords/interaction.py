@@ -101,7 +101,7 @@ class Interaction(LibraryComponent):
         | =Arguments= | =Description= |
         | ``selector`` | Selector of the text field. See the `Finding elements` section for details about the selectors. |
         | ``txt`` | Text for the text field. |
-        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability | Actionability checks]. |
+        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability|Actionability checks]. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -213,7 +213,7 @@ class Interaction(LibraryComponent):
         | =Arguments= | =Description= |
         | ``selector`` | Selector of the text field. See the `Finding elements` section for details about the selectors. |
         | ``secret`` | The secret string that should be filled into the text field. Supports Robot Framework 7.4 Secret type as normal variable (with curly braces). Also environment variable name with % prefix or a local variable with $ prefix that has the secret text value (without curly braces). |
-        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability | Actionability checks]. |
+        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability|Actionability checks]. |
 
 
         This keyword does not log the secret in Robot Framework logs, but
@@ -535,7 +535,7 @@ class Interaction(LibraryComponent):
         | =Arguments= | =Description= |
         | ``selector`` | Selector element to hover. See the `Finding elements` section for details about the selectors. |
         | ``position_x`` & ``position_y`` | A point to hover relative to the top-left corner of element bounding box. If not specified, hovers over some visible point of the element. Only positive values within the bounding-box are allowed. Both values must be given, otherwise the position is ignored. |
-        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability | Actionability checks]. Defaults to ``False``. |
+        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability|Actionability checks]. Defaults to ``False``. |
         | ``*modifiers`` | Modifier keys to press. Ensures that only these modifiers are pressed during the hover, and then restores current modifiers back. If not specified, currently pressed modifiers are used. Valid modifier keys are ``Alt``, ``Control``, ``ControlOrMeta``, ``Meta`` and ``Shift``. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
@@ -695,7 +695,7 @@ class Interaction(LibraryComponent):
 
         | =Arguments= | =Description= |
         | ``selector`` | Selector of the checkbox. See the `Finding elements` section for details about the selectors. |
-        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability | Actionability checks]. |
+        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability|Actionability checks]. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -718,7 +718,7 @@ class Interaction(LibraryComponent):
 
         | =Arguments= | =Description= |
         | ``selector`` | Selector of the checkbox. See the `Finding elements` section for details about the selectors. |
-        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability | Actionability checks]. |
+        | ``force`` | Set to ``True`` to skip Playwright's [https://playwright.dev/docs/actionability|Actionability checks]. |
 
         Keyword uses strict mode, see `Finding elements` for more details about strict mode.
 
@@ -879,9 +879,15 @@ class Interaction(LibraryComponent):
         triggers the dialog.
 
         The handler is registered on the current page and stays in effect for all
-        following dialogs on that page.
+        following dialogs on that page. Calling this keyword again on the same page
+        replaces the handler, so the latest call decides how dialogs are handled.
 
         If a handler is not set, dialogs are dismissed by default.
+
+        The handler runs when the dialog appears, not while this keyword executes, so a
+        failure to accept or dismiss the dialog can not be raised as a keyword failure.
+        Such a failure is reported in the playwright-log.txt file only, which is linked
+        into the Robot Framework log when a keyword fails.
 
         | =Arguments= | =Description= |
         | ``action`` | How to handle the alert. Can be ``accept`` or ``dismiss``. |
@@ -1312,12 +1318,15 @@ class Interaction(LibraryComponent):
             logger.info(response.log)
 
     @keyword(tags=("Setter", "PageContent"))
-    def keyboard_key(self, action: KeyAction, key: str):
+    def keyboard_key(
+        self, action: KeyAction, key: str, *, delay: timedelta = timedelta(0)
+    ):
         """Press a keyboard key on the virtual keyboard or set a key up or down.
 
         | =Arguments= | =Description= |
         | ``action`` | Determines whether the key should be released (``up``), held down (``down``) or pressed once (``press``). ``down`` and ``up`` are useful for combinations, i.e. with Shift. |
         | ``key`` | The key to be pressed. Examples of valid keys are: ``F1`` - ``F12``, ``Digit0`` - ``Digit9``, ``KeyA`` - ``KeyZ``, ``Backquote``, ``Minus``, ``Equal``, ``Backslash``, ``Backspace``, ``Tab``, ``Delete``, ``Escape``, ``ArrowDown``, ``End``, ``Enter``, ``Home``, ``Insert``, ``PageDown``, ``PageUp``, ``ArrowRight``, ``ArrowUp`` , etc. |
+        | ``delay`` | Time the key is held down between keydown and keyup, in Robot Framework's time format. Only valid with action ``press``, other actions raise an error. Defaults to ``0 s``. Example: ``50 ms`` |
 
 
         Useful keys for ``down`` and ``up`` for example are:
@@ -1325,6 +1334,7 @@ class Interaction(LibraryComponent):
 
         Example execution:
         | `Keyboard Key`    press    S
+        | `Keyboard Key`    press    S        delay=500 ms
         | `Keyboard Key`    down     Shift
         | `Keyboard Key`    press    ArrowLeft
         | `Keyboard Key`    press    Delete
@@ -1334,9 +1344,15 @@ class Interaction(LibraryComponent):
 
         [https://forum.robotframework.org/t//4298|Comment >>]
         """
+        if delay and action is not KeyAction.press:
+            raise ValueError("delay is only valid if action is 'press'")
         with self.playwright.grpc_channel() as stub:
             response = stub.KeyboardKey(
-                Request().KeyboardKeypress(action=action.name, key=key)
+                Request().KeyboardKeypress(
+                    action=action.name,
+                    key=key,
+                    delay=int(delay.total_seconds() * 1000),
+                )
             )
             logger.debug(response.log)
 

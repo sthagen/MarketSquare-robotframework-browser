@@ -168,10 +168,17 @@ jobs:
       run: |
         export DISPLAY=:99.0
         Xvfb -ac :99 -screen 0 1280x1024x16 > /dev/null 2>&1 &
+    # Shard 1 is pinned to the latest Robot Framework, so the extra condition is what runs
+    # the unit tests against the supported floor as well. Keep one entry of each rf-version.
     - name: Run pytests
-      if: matrix.shard == 1
+      if: matrix.shard == 1 || (matrix.rf-version == '7.1.1' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13')
       run: |
         invoke utest
+    - uses: actions/upload-artifact@v7
+      if: ${{ always() && hashFiles('utest/output/pytest_xunit.xml') != '' }}
+      with:
+        name: Unit test results-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.node-version }}
+        path: utest/output/pytest_xunit.xml
     - name: Run Node.js unit tests with coverage
       if: matrix.shard == 1
       run: |
@@ -200,7 +207,7 @@ jobs:
         name: Test results-${{ matrix.os }}-${{ matrix.shard }}-${{ matrix.python-version }}-${{ matrix.node-version }}
         path: atest/output
     - name: Github Job Summary
-      if: ${{ always() }}
+      if: ${{ always() && hashFiles('atest/output/output.xml') != '' }}
       run: |
         python -m GHAReports --robotlog atest/output/output.xml --markdown fail.md --no-totals --no-passes --no-skipped --fails --no-warnings
         cat fail.md
@@ -357,7 +364,7 @@ jobs:
           name: ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.node-version }} Clean install results
           path: atest/output
       - name: Github Job Summary
-        if: ${{ always() }}
+        if: ${{ always() && hashFiles('atest/output/output.xml') != '' }}
         run: |
           python -m GHAReports --robotlog atest/output/output.xml --markdown fail.md --no-totals --no-passes --no-skipped --fails --no-warnings
           cat fail.md
@@ -526,7 +533,7 @@ jobs:
           name: Clean_install_results_${{ matrix.os }}
           path: atest/output
       - name: Github Job Summary
-        if: ${{ always() }}
+        if: ${{ always() && hashFiles('atest/output/output.xml') != '' }}
         run: |
           python -m GHAReports --robotlog atest/output/output.xml --markdown fail.md --no-totals --no-passes --no-skipped --fails --no-warnings
           cat fail.md
@@ -626,7 +633,7 @@ jobs:
           name: docker_results
           path: output_docker
       - name: Github Job Summary
-        if: ${{ always() }}
+        if: ${{ always() && hashFiles('output_docker/output.xml') != '' }}
         run: |
           python -m GHAReports --robotlog output_docker/output.xml --markdown fail.md --no-totals --no-passes --no-skipped --fails --no-warnings
           cat fail.md

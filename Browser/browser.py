@@ -20,6 +20,7 @@ import string
 import sys
 import time
 import types
+from collections.abc import Iterator
 from concurrent.futures._base import Future
 from copy import copy
 from datetime import timedelta
@@ -49,6 +50,7 @@ from .keywords import (
     Formatter,
     Getters,
     Interaction,
+    KeywordCallObserver,
     LocatorHandler,
     Network,
     Pdf,
@@ -61,6 +63,7 @@ from .keywords import (
 )
 from .keywords.crawling import Crawling
 from .playwright import Playwright
+from .python_arguments import add_argument_conversion
 from .utils import (
     AutoClosingLevel,
     PlaywrightLogTypes,
@@ -85,37 +88,6 @@ from .utils.data_types import (
     TracingGroupMode,
 )
 from .version import __version__ as VERSION
-
-KW_CALL_CONTENT_TEMPLATE = """body::before {{
-    content: '{keyword_call}';
-    position: fixed;
-    z-index: 9999;
-    border: 1px solid lightblue;
-    border-radius: 1rem;
-    background: #00008b90;
-    color: white;
-    padding: 2px 10px;
-    pointer-events: none;
-    font-family: monospace;
-    font-size: medium;
-    font-weight: normal;
-    white-space: pre;
-    bottom: 5px;
-    left: 5px;
-    {additional_styles}
-}}"""
-
-KW_CALL_BANNER_FUNCTION = """(content) => {
-    const kwCallBanner = document.getElementById('kwCallBanner');
-    if (kwCallBanner) {
-        kwCallBanner.textContent = content;
-    } else {
-        const kwCallBanner = document.createElement("style");
-        kwCallBanner.setAttribute("id", 'kwCallBanner');
-        kwCallBanner.textContent = content;
-        document.head.appendChild(kwCallBanner);
-    }
-}"""
 
 
 class _RFContextTracker:
@@ -419,6 +391,19 @@ class Browser(DynamicCore):
     A new set higher order scope will always remove the lower order scope which may be in charge.
     So the setting of a ``Suite`` scope from a test, will set that scope to the robot file suite where that test is and removes the ``Test`` scope that may have been in place.
 
+    = Using Browser from Python =
+
+    Browser keywords can be called directly from Python, from your own Robot
+    Framework library. Arguments convert the same way Robot Framework converts
+    them, so ``browser.click("//button", "middle")`` works, and a Python
+    ``None`` is passed through unchanged. Robot Framework's own features do not
+    all follow: `Automatic page and context closing` and `Scope Setting` need
+    Browser's listener to be registered, and ``run_on_failure`` never applies
+    to a keyword your library calls from Python.
+
+    Getting started, and what your own library gets in each case:
+    https://robotframework-browser.org/docs/extending/python-libraries
+
     = Language =
 
     Keyword names and their documentation can be translated. Install a Python
@@ -513,6 +498,7 @@ class Browser(DynamicCore):
         self._playwright_state: PlaywrightState = PlaywrightState(self)
         self._browser_control = Control(self)
         self._assertion_formatter = Formatter(self)
+        self._keyword_call = KeywordCallObserver(self)
         libraries = [
             self._playwright_state,
             self._browser_control,
@@ -573,7 +559,6 @@ class Browser(DynamicCore):
         self.pause_on_failure: set[str] = set()
         self._unresolved_promises: set[Future] = set()
         self._keyword_formatters: dict = {}
-        self._current_loglevel: str | None = None
         self.is_test_case_running = False
         self.auto_closing_default_run_before_unload: bool = False
         self.keyword_call_stack: list[KeywordCallStackEntry] = []
@@ -581,6 +566,7 @@ class Browser(DynamicCore):
 
         translation_file = self._get_translation(language)
         DynamicCore.__init__(self, libraries, translation_file)
+        add_argument_conversion(self)
 
         self.scope_stack["timeout"] = SettingsStack(
             self.convert_timeout(timeout),
@@ -923,20 +909,13 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
             source,
             attrs["lineno"],
             attrs["type"],
+            kwname=attrs["kwname"],
         )
         self.keyword_call_stack.append(kw_call_stack_entry)
         if self.tracing_group_mode == TracingGroupMode.Full:
-            self._playwright_state.open_trace_group(**kw_call_stack_entry)
-        if not (
-            self.show_keyword_call_banner is False
-            or (self.show_keyword_call_banner is None and not self.presenter_mode)
-            or attrs["libname"] != "Browser"
-            or attrs["status"] == "NOT RUN"
-        ):
-            self._show_keyword_call(attrs)
-        if "secret" in attrs["kwname"].lower() and attrs["libname"] == "Browser":
-            self._set_logging(False)
-
+            self._playwright_state.open_trace_group(
+                **self._trace_group_arguments(kw_call_stack_entry)
+            )
         if attrs["type"] == "Teardown":
             timeout_pattern = "Test timeout .* exceeded."
             test = EXECUTION_CONTEXTS.current.test
@@ -954,10 +933,13 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
         source: str | Path | None,
         lineno: int,
         typ: str,
+        *,
+        kwname: str = "",
     ) -> KeywordCallStackEntry:
         if typ not in ["SETUP", "KEYWORD", "TEARDOWN"]:
             args = [name] if name else []
             name = typ
+            kwname = typ
         try:
             lineno = int(lineno)
         except (ValueError, TypeError):
@@ -968,15 +950,27 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
             ),
             "file": str(source),
             "line": lineno,
+            "kwname": kwname,
+            "args": list(args),
         }
 
+    @staticmethod
+    def _trace_group_arguments(entry: KeywordCallStackEntry) -> dict[str, Any]:
+        return {"name": entry["name"], "file": entry["file"], "line": entry["line"]}
+
     def run_keyword(self, name, args, kwargs=None):
+        is_secret_keyword = self._keyword_call.is_secret_keyword(name)
         try:
+            if is_secret_keyword:
+                self._keyword_call.suppress_logging()
+            self._keyword_call.show(name)
             if (
                 self.tracing_group_mode == TracingGroupMode.Browser
                 and self.keyword_call_stack
             ):
-                self._playwright_state.open_trace_group(**(self.keyword_call_stack[-1]))
+                self._playwright_state.open_trace_group(
+                    **self._trace_group_arguments(self.keyword_call_stack[-1])
+                )
             return DynamicCore.run_keyword(self, name, args, kwargs)
         except (AssertionError, AttributeError) as e:
             selector = self._get_selector_value_from_keyword_call(name, args, kwargs)
@@ -996,6 +990,8 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
                 and self.keyword_call_stack
             ):
                 self._playwright_state.close_trace_group()
+            if is_secret_keyword:
+                self._keyword_call.restore_logging()
 
     def _get_selector_value_from_keyword_call(self, name, args, kwargs):
         selector = kwargs.get("selector")
@@ -1026,8 +1022,6 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
             self.keyword_call_stack.pop()
         if self.tracing_group_mode == TracingGroupMode.Full:
             self._playwright_state.close_trace_group()
-        if "secret" in attrs["kwname"].lower() and attrs["libname"] == "Browser":
-            self._set_logging(True)
 
     def _end_test(self, name, attrs):
         self._remove_from_scope_stack(attrs["id"])
@@ -1152,51 +1146,6 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
         clean_message = ansi_escape.sub("", args[0])
         return (clean_message, *args[1:])
 
-    def _set_logging(self, status: bool):
-        try:
-            context = BuiltIn()._context.output
-        except DataError:
-            context = BuiltIn()
-        if status:
-            if self._current_loglevel:
-                context.set_log_level(self._current_loglevel)
-                self._current_loglevel = None
-        else:
-            self._current_loglevel = context.set_log_level("NONE")
-
-    def _show_keyword_call(self, attrs):
-        try:
-            if attrs["kwname"] in ["Take Screenshot", "Get Page Source"]:
-                self.set_keyword_call_banner()
-            else:
-                args = "    ".join(attrs["args"])
-                args = BuiltIn().replace_variables(args)
-                content = f"{attrs['kwname']}{'    ' * bool(attrs['args'])}{args}"
-                self.set_keyword_call_banner(content)
-        except Exception:
-            pass
-
-    def set_keyword_call_banner(self, keyword_call=None):
-        if keyword_call:
-            keyword_call = keyword_call.replace("'", "\\'")
-            content = KW_CALL_CONTENT_TEMPLATE.format(
-                keyword_call=keyword_call,
-                additional_styles=self.keyword_call_banner_add_style,
-            )
-        else:
-            content = "body::before{}"
-
-        with self.playwright.grpc_channel() as stub:
-            stub.EvaluateJavascript(
-                Request().EvaluateAll(
-                    selector="",
-                    script=KW_CALL_BANNER_FUNCTION,
-                    arg=json.dumps(content),
-                    allElements=False,
-                    strict=False,
-                )
-            )
-
     def keyword_error(self, selector):
         """Runs keyword on failure."""
         if self._running_on_failure_keyword or not self.run_on_failure_keyword.name:
@@ -1316,12 +1265,25 @@ def {name}(self, {", ".join(argument_names_and_default_values_texts)}):
         return True
 
     @staticmethod
+    def _iter_module_names() -> Iterator[str]:
+        for importer in pkgutil.iter_importers():
+            # A Windows console script such as ``robot.exe`` is a zip archive on sys.path.
+            # Which may fail, therefore own wrapper.
+            try:
+                modules = list(pkgutil.iter_importer_modules(importer))
+            except KeyError as error:
+                logger.debug(f"Could not list modules of {importer}: {error}")
+                continue
+            for name, _ in modules:
+                yield name
+
+    @staticmethod
     def _get_translation(language: str | None) -> Path | None:
         if not language:
             return None
         discovered_plugins = {
             name: importlib.import_module(name)
-            for _, name, _ in pkgutil.iter_modules()
+            for name in Browser._iter_module_names()
             if name.startswith("robotframework_browser_translation")
         }
         lang = language.lower()

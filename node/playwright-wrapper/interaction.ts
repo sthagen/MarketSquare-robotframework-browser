@@ -222,15 +222,36 @@ export async function uploadFile(request: pb.Request_FilePath, page: Page): Prom
     return emptyWithLog('Successfully uploaded file');
 }
 
+const dialogHandlers = new WeakMap<Page, (dialog: Dialog) => Promise<void>>();
+
 export async function handleAlert(request: pb.Request_AlertAction, page: Page): Promise<pb.Response_Empty> {
     const alertAction = request.alertAction as 'accept' | 'dismiss';
     const promptInput = request.promptInput;
     const fn = async (dialog: Dialog) => {
         const dialogueText = dialog.message();
-        if (promptInput) await dialog[alertAction](promptInput);
-        else await dialog[alertAction]();
+        try {
+            if (promptInput) await dialog[alertAction](promptInput);
+            else await dialog[alertAction]();
+        } catch (error: unknown) {
+            const reason = error instanceof Error ? error.message : String(error);
+            if (reason.includes('already handled')) {
+                logger.info(`Dialog "${dialogueText}" was handled by someone else already`);
+            } else {
+                logger.error(
+                    { event_kind: 'internal_error', status: 'failed' },
+                    `Failed to ${alertAction} dialog "${dialogueText}": ${reason}`,
+                );
+            }
+            return;
+        }
         logger.info(`Alert text: ${dialogueText}`);
     };
+    const previous = dialogHandlers.get(page);
+    if (previous) {
+        logger.info('Replacing the previously set dialog handler');
+        page.off('dialog', previous);
+    }
+    dialogHandlers.set(page, fn);
     page.on('dialog', fn);
     return emptyWithLog('Set event handler for next alert');
 }
@@ -281,6 +302,11 @@ export async function mouseWheel(request: pb.Request_MouseWheel, page?: Page): P
 export async function keyboardKey(request: pb.Request_KeyboardKeypress, page: Page): Promise<pb.Response_Empty> {
     const action = request.action as 'down' | 'up' | 'press';
     const key = request.key;
+    const delay = request.delay;
+    if (action === 'press' && delay > 0) {
+        await invokeOnKeyboard(page, action, key, { delay: delay });
+        return emptyWithLog(`Successfully did ${action} for ${key} with delay ${delay}ms`);
+    }
     await invokeOnKeyboard(page, action, key);
     return emptyWithLog(`Successfully did ${action} for ${key}`);
 }

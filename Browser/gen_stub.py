@@ -62,14 +62,14 @@ from Browser.utils import (
     BrowserInfo, PageLoadStates,ViewportDimensions, ServiceWorkersPermissions,
     ReduceMotion, RecordVideo, RecordHar, Proxy, Permission, HttpCredentials,
     GeoLocation, ForcedColors, ColorScheme, ClientCertificate, HighlightMode, ScreenshotReturnType,
-    Scale, ScreenshotFileTypes, BoundingBox, ReducedMotion, Media, PdfMarging,
+    Scale, ScreenshotFileTypes, BoundingBox, ReducedMotion, ReloadPages, Media, PdfMarging,
     PdfFormat, CoverageType, RequestMethod, ElementState, ScrollPosition,
     SelectAttribute, SelectOptions, ConditionInputs, FileUploadBuffer, SelectAttribute
 )
 from Browser.utils .data_types import (
     ClientCredential, MouseButton, KeyboardModifier, ScrollBehavior, ScrollBehavior, DialogAction, MouseButtonAction,
     NotSet, Dimensions, SizeFields, AreaFields, BoundingBoxFields, SelectionStrategy, ElementRole,
-     AriaSnapshotReturnType, KeyboardInputAction, KeyAction, TextType
+     AriaSnapshotMode, AriaSnapshotReturnType, KeyboardInputAction, KeyAction, TextType
 )
 from Browser.utils.types import Secret
 """
