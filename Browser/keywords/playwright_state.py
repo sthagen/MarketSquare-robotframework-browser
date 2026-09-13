@@ -134,13 +134,18 @@ class PlaywrightState(LibraryComponent):
         | `Close Browser`               # Close current browser
         | `Close Browser`    ${id}      # Close browser matching id
 
+        Closing is given at least 20 seconds to finish, and twice the current
+        `Set Browser Timeout` value when that is longer. A browser that has
+        stopped responding therefore fails this keyword instead of hanging the
+        run, and a short Browser timeout does not cut the closing short.
+
         [https://forum.robotframework.org/t//4239|Comment >>]
         """
         browser = SelectionType.create(browser)
         with self.playwright.grpc_channel() as stub:
             if browser == SelectionType.ALL:
                 response = stub.CloseAllBrowsers(
-                    Request().Empty(), timeout=self.timeout * 2
+                    Request().Empty(), timeout=self.close_deadline
                 )
                 self.library.pause_on_failure.clear()
                 logger.info(response.log)
@@ -149,7 +154,7 @@ class PlaywrightState(LibraryComponent):
             if browser != SelectionType.CURRENT:
                 self.switch_browser(browser)
 
-            response = stub.CloseBrowser(Request.Empty(), timeout=self.timeout * 2)
+            response = stub.CloseBrowser(Request.Empty(), timeout=self.close_deadline)
             closed_browser_id = response.body
             self.delete_browser_id_from_arg_mapping(closed_browser_id)
             self._update_tracing_contexts()
@@ -185,6 +190,11 @@ class PlaywrightState(LibraryComponent):
         | `Close Context`    ALL        CURRENT    #  Closes all contexts of the current browser
         | `Close Context`    ALL        ALL        #  Closes all contexts of all browsers
 
+        Closing is given at least 20 seconds to finish, and twice the current
+        `Set Browser Timeout` value when that is longer. A browser that has
+        stopped responding therefore fails this keyword instead of hanging the
+        run, and a short Browser timeout does not cut the closing short.
+
         [https://forum.robotframework.org/t//4240|Comment >>]
         """
         context = SelectionType.create(context)
@@ -219,7 +229,7 @@ class PlaywrightState(LibraryComponent):
                 self.context_cache.remove(context["id"])
                 self.switch_context(context["id"])
                 response = stub.CloseContext(
-                    Request().Bool(value=save_trace), timeout=self.timeout * 2
+                    Request().Bool(value=save_trace), timeout=self.close_deadline
                 )
                 logger.info(response.log)
 

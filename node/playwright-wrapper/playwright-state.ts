@@ -69,6 +69,7 @@ import {
     Response_PageReportResponse,
     Response_String,
 } from './generated/playwright';
+import { HighlightDisposableCache } from './highlight-cache';
 import { exists } from './playwright-invoke';
 import {
     emptyWithLog,
@@ -357,10 +358,15 @@ export class PlaywrightState {
         this.browserStack = [];
         this.extensions = [];
         this.browserServer = [];
+        this.highlightDisposableCache = new HighlightDisposableCache();
     }
     extensions: Record<string, (...args: unknown[]) => unknown>[];
     public browserStack: BrowserState[];
     private browserServer: BrowserServer[];
+    /** Per peer, like the rest of this state. While it was module-level, any
+     * worker sharing this node process disposed every other worker's
+     * highlights along with its own; see issue #5211. */
+    public readonly highlightDisposableCache: HighlightDisposableCache;
     get activeBrowser() {
         return lastItem(this.browserStack);
     }
@@ -1037,7 +1043,7 @@ export async function switchPage(
     const id = request.id;
     if (id === 'CURRENT') {
         const previous = browserState.page?.id || 'NO PAGE OPEN';
-        void browserState.page?.p.bringToFront();
+        await browserState.page?.p.bringToFront();
         return stringResponse(previous, 'Returned active page id');
     }
     if (id === 'NEW') {
@@ -1102,7 +1108,7 @@ export async function switchBrowser(request: Request_Index, openBrowsers: Playwr
     if (id !== 'CURRENT') {
         openBrowsers.switchTo(id);
     }
-    void openBrowsers.getActivePage()?.bringToFront();
+    await openBrowsers.getActivePage()?.bringToFront();
     return stringResponse(
         previous?.id || 'NO BROWSER OPEN',
         id === 'CURRENT' ? 'Returned active browser id. ' + id : 'Successfully changed active browser: ' + id,
